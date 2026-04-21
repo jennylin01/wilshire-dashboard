@@ -1,7 +1,8 @@
 "use client";
 
-import { LogOut, RefreshCw } from "lucide-react";
+import { ChevronLeft, LogOut, RefreshCw } from "lucide-react";
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useTheme } from "@/components/ThemeProvider";
@@ -138,21 +139,39 @@ export function Dashboard({ data }: { data: DashboardData }) {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-            <div
+            <Link
+              href="/"
               style={{
-                fontFamily: fontStack,
-                fontSize: "17px",
-                fontWeight: 700,
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                textDecoration: "none",
                 color: theme.ink,
-                letterSpacing: "-0.02em",
+                transition: "color 0.15s",
               }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = theme.accent)
+              }
+              onMouseLeave={(e) => (e.currentTarget.style.color = theme.ink)}
+              title="Back to engagement hub"
+              aria-label="Back to engagement hub"
             >
-              Motive
-              <span style={{ color: theme.muted, fontWeight: 400 }}>
-                {" "}
-                · Create
+              <ChevronLeft size={16} style={{ marginLeft: "-4px" }} />
+              <span
+                style={{
+                  fontFamily: fontStack,
+                  fontSize: "17px",
+                  fontWeight: 700,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Motive
+                <span style={{ color: theme.muted, fontWeight: 400 }}>
+                  {" "}
+                  · Create
+                </span>
               </span>
-            </div>
+            </Link>
             <div style={{ width: "1px", height: "16px", background: theme.rule }} />
             <div
               style={{

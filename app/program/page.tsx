@@ -1,10 +1,10 @@
-import { Hub } from "@/components/hub/Hub";
+import { Dashboard } from "@/components/dashboard/Dashboard";
 import { loadDashboardData } from "@/lib/load-data";
 import type { DashboardData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function HubPage() {
+export default async function ProgramDashboardPage() {
   let data: DashboardData;
   try {
     data = await loadDashboardData();
@@ -23,8 +23,8 @@ export default async function HubPage() {
           Can&apos;t reach Notion
         </h1>
         <p style={{ color: "#737373", marginBottom: "16px" }}>
-          The hub couldn&apos;t load data from the Notion workspace. Check
-          that{" "}
+          The dashboard couldn&apos;t load data from the Notion workspace.
+          Check that{" "}
           <code
             style={{
               background: "#f5f5f5",
@@ -52,5 +52,5 @@ export default async function HubPage() {
     );
   }
 
-  return <Hub data={data} />;
+  return <Dashboard data={data} />;
 }
