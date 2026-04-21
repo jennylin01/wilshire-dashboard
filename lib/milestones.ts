@@ -15,7 +15,7 @@ export const programme: Programme = {
   client: "Wilshire Advisors LLC",
   supplier: "Motive Create US, LLC",
   fee: 400,
-  clientPM: "Hanna Valva (CTO)",
+  clientSponsor: "Hanna Valva (CTO)",
   workstreamLead: "Mo Beldo",
   sponsors: ["Christina Walsh, CFO", "Todd Kessler, CRO", "Leah Emkin, OCIO"],
   start: "Apr 20, 2026",

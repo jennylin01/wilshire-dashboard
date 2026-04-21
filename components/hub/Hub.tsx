@@ -108,18 +108,18 @@ export function Hub({ data }: { data: DashboardData }) {
       </div>
 
       {/* MAIN */}
-      <div style={{ flex: 1, padding: "48px 40px 40px" }}>
+      <div style={{ flex: 1, padding: "36px 40px 32px" }}>
         {/* Heading */}
-        <div style={{ marginBottom: "32px" }}>
+        <div style={{ marginBottom: "24px" }}>
           <div
             style={{
               fontFamily: monoStack,
-              fontSize: "11px",
+              fontSize: "10px",
               color: theme.accent,
               fontWeight: 700,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
-              marginBottom: "10px",
+              marginBottom: "8px",
             }}
           >
             Choose a programme
@@ -127,11 +127,11 @@ export function Hub({ data }: { data: DashboardData }) {
           <h1
             style={{
               fontFamily: fontStack,
-              fontSize: "36px",
+              fontSize: "26px",
               fontWeight: 700,
               margin: 0,
-              letterSpacing: "-0.03em",
-              lineHeight: 1.1,
+              letterSpacing: "-0.025em",
+              lineHeight: 1.15,
               color: theme.ink,
             }}
           >
@@ -140,9 +140,9 @@ export function Hub({ data }: { data: DashboardData }) {
           <p
             style={{
               fontFamily: fontStack,
-              fontSize: "15px",
+              fontSize: "13px",
               color: theme.muted,
-              margin: "10px 0 0",
+              margin: "6px 0 0",
               lineHeight: 1.5,
               maxWidth: "720px",
             }}

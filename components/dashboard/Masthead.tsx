@@ -60,9 +60,9 @@ export function Masthead({ programme }: { programme: Programme }) {
           </span>
         </div>
         <div>
-          <span style={{ color: theme.mutedSoft }}>PM</span>{" "}
+          <span style={{ color: theme.mutedSoft }}>Sponsor</span>{" "}
           <span style={{ color: theme.ink, fontWeight: 500 }}>
-            {programme.clientPM}
+            {programme.clientSponsor}
           </span>
         </div>
         <div>

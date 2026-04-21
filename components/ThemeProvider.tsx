@@ -15,7 +15,7 @@ const ThemeContext = createContext<Ctx | null>(null);
 const STORAGE_KEY = "wilshire-theme";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>("light");
+  const [mode, setModeState] = useState<ThemeMode>("dark");
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {

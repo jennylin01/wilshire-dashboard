@@ -10,14 +10,10 @@ export function ProgramTile({ data }: { data: DashboardData }) {
   const { theme } = useTheme();
   const router = useRouter();
 
-  // Roll up worst-RAG across all workstreams for the header dot.
   const ragOrder: Record<RAG, number> = { green: 0, amber: 1, red: 2 };
   const overall = data.workstreams
     .map((w) => w.rag)
-    .reduce<RAG>(
-      (acc, r) => (ragOrder[r] > ragOrder[acc] ? r : acc),
-      "green"
-    );
+    .reduce<RAG>((acc, r) => (ragOrder[r] > ragOrder[acc] ? r : acc), "green");
   const overallLabel =
     overall === "red" ? "Red" : overall === "amber" ? "Amber" : "Green";
 
@@ -46,14 +42,14 @@ export function ProgramTile({ data }: { data: DashboardData }) {
         background: theme.surface,
         border: `1px solid ${theme.rule}`,
         borderRadius: "8px",
-        padding: "32px 36px",
+        padding: "22px 26px",
         cursor: "pointer",
         transition: "all 0.18s ease",
         position: "relative",
         display: "flex",
         flexDirection: "column",
-        gap: "28px",
-        minHeight: "440px",
+        gap: "16px",
+        minHeight: "300px",
         overflow: "hidden",
       }}
       onMouseEnter={(e) => {
@@ -79,7 +75,7 @@ export function ProgramTile({ data }: { data: DashboardData }) {
         }}
       />
 
-      {/* Top: category label + title */}
+      {/* Header: label + title */}
       <div>
         <div
           style={{
@@ -89,7 +85,7 @@ export function ProgramTile({ data }: { data: DashboardData }) {
             fontWeight: 700,
             letterSpacing: "0.12em",
             textTransform: "uppercase",
-            marginBottom: "16px",
+            marginBottom: "10px",
           }}
         >
           Programme · Live
@@ -97,107 +93,52 @@ export function ProgramTile({ data }: { data: DashboardData }) {
         <h2
           style={{
             fontFamily: fontStack,
-            fontSize: "32px",
+            fontSize: "24px",
             fontWeight: 700,
             margin: 0,
-            letterSpacing: "-0.025em",
-            lineHeight: 1.1,
+            letterSpacing: "-0.02em",
+            lineHeight: 1.15,
             color: theme.ink,
           }}
         >
           {data.programme.name}
         </h2>
-        <p
-          style={{
-            fontFamily: fontStack,
-            fontSize: "15px",
-            color: theme.muted,
-            margin: "10px 0 0",
-            lineHeight: 1.5,
-          }}
-        >
-          {data.programme.supplier} &times; {data.programme.client}
-        </p>
       </div>
 
-      {/* Timeline row */}
+      {/* Inline meta row (replaces two separate timeline/fee sections) */}
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          paddingTop: "18px",
+          flexWrap: "wrap",
+          gap: "20px",
+          paddingTop: "12px",
           borderTop: `1px solid ${theme.ruleSoft}`,
+          fontFamily: monoStack,
+          fontSize: "12px",
+          color: theme.muted,
         }}
       >
-        <div>
-          <div
-            style={{
-              fontFamily: fontStack,
-              fontSize: "12px",
-              color: theme.muted,
-              marginBottom: "6px",
-              fontWeight: 500,
-            }}
-          >
-            Timeline
-          </div>
-          <div
-            style={{
-              fontFamily: fontStack,
-              fontSize: "18px",
-              color: theme.ink,
-              fontWeight: 600,
-              letterSpacing: "-0.015em",
-            }}
-          >
-            Week {data.programme.currentWeek} of {data.programme.totalWeeks}
-          </div>
-          <div
-            style={{
-              fontFamily: monoStack,
-              fontSize: "12px",
-              color: theme.mutedSoft,
-              marginTop: "4px",
-            }}
-          >
-            {data.programme.start} → {data.programme.end}
-          </div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div
-            style={{
-              fontFamily: fontStack,
-              fontSize: "12px",
-              color: theme.muted,
-              marginBottom: "6px",
-              fontWeight: 500,
-            }}
-          >
-            Fee
-          </div>
-          <div
-            style={{
-              fontFamily: fontStack,
-              fontSize: "18px",
-              color: theme.ink,
-              fontWeight: 600,
-              letterSpacing: "-0.015em",
-            }}
-          >
-            ${data.programme.fee}k fixed
-          </div>
-          <div
-            style={{
-              fontFamily: monoStack,
-              fontSize: "12px",
-              color: theme.mutedSoft,
-              marginTop: "4px",
-            }}
-          >
-            PM: {data.programme.clientPM}
-          </div>
-        </div>
+        <span>
+          <span style={{ color: theme.mutedSoft }}>Week</span>{" "}
+          <span style={{ color: theme.ink, fontWeight: 600 }}>
+            {data.programme.currentWeek} of {data.programme.totalWeeks}
+          </span>
+        </span>
+        <span>
+          <span style={{ color: theme.mutedSoft }}>Fee</span>{" "}
+          <span style={{ color: theme.ink, fontWeight: 600 }}>
+            ${data.programme.fee}k
+          </span>
+        </span>
+        <span>
+          <span style={{ color: theme.mutedSoft }}>Sponsor</span>{" "}
+          <span style={{ color: theme.ink, fontWeight: 600 }}>
+            {data.programme.clientSponsor}
+          </span>
+        </span>
+        <span style={{ marginLeft: "auto" }}>
+          {data.programme.start} → {data.programme.end}
+        </span>
       </div>
 
       {/* KPI strip */}
@@ -205,8 +146,8 @@ export function ProgramTile({ data }: { data: DashboardData }) {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "16px",
-          paddingTop: "18px",
+          gap: "14px",
+          paddingTop: "12px",
           borderTop: `1px solid ${theme.ruleSoft}`,
         }}
       >
@@ -222,7 +163,7 @@ export function ProgramTile({ data }: { data: DashboardData }) {
           color={theme.red}
         />
         <KPIMini
-          label="Late commitments"
+          label="Late commits"
           value={String(lateCommitments)}
           color={theme.red}
         />
@@ -237,7 +178,7 @@ export function ProgramTile({ data }: { data: DashboardData }) {
       <div
         style={{
           marginTop: "auto",
-          paddingTop: "20px",
+          paddingTop: "14px",
           borderTop: `1px solid ${theme.ruleSoft}`,
           display: "flex",
           justifyContent: "space-between",
@@ -257,16 +198,16 @@ export function ProgramTile({ data }: { data: DashboardData }) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "8px",
+            gap: "6px",
             fontFamily: fontStack,
-            fontSize: "15px",
+            fontSize: "13px",
             fontWeight: 600,
             color: theme.accent,
-            letterSpacing: "-0.01em",
+            letterSpacing: "-0.005em",
           }}
         >
           Open program dashboard
-          <ArrowUpRight size={16} />
+          <ArrowUpRight size={14} />
         </div>
       </div>
     </div>
@@ -290,10 +231,11 @@ function KPIMini({
       <div
         style={{
           fontFamily: fontStack,
-          fontSize: "12px",
+          fontSize: "11px",
           color: theme.muted,
           fontWeight: 500,
-          marginBottom: "8px",
+          marginBottom: "6px",
+          letterSpacing: "-0.005em",
         }}
       >
         {label}
@@ -302,20 +244,20 @@ function KPIMini({
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "8px",
+          gap: "6px",
           fontFamily: fontStack,
-          fontSize: "26px",
+          fontSize: "20px",
           fontWeight: 700,
           color,
-          letterSpacing: "-0.025em",
+          letterSpacing: "-0.02em",
           lineHeight: 1,
         }}
       >
         {dot && (
           <span
             style={{
-              width: "10px",
-              height: "10px",
+              width: "8px",
+              height: "8px",
               borderRadius: "50%",
               background: color,
               display: "inline-block",

@@ -27,14 +27,14 @@ export function DemoTile({
         background: theme.surface,
         border: `1px solid ${theme.rule}`,
         borderRadius: "8px",
-        padding: "22px 20px",
+        padding: "16px 18px",
         cursor: "not-allowed",
         transition: "all 0.18s ease",
         position: "relative",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        minHeight: "208px",
+        minHeight: "142px",
         overflow: "hidden",
         opacity: 0.92,
       }}
@@ -49,9 +49,9 @@ export function DemoTile({
       >
         <div
           style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "8px",
+            width: "32px",
+            height: "32px",
+            borderRadius: "6px",
             background: theme.surfaceElevated,
             border: `1px solid ${theme.ruleSoft}`,
             display: "flex",
@@ -61,17 +61,17 @@ export function DemoTile({
             transition: "color 0.18s ease",
           }}
         >
-          <Icon size={18} strokeWidth={1.75} />
+          <Icon size={15} strokeWidth={1.75} />
         </div>
         <span
           style={{
             fontFamily: monoStack,
-            fontSize: "10px",
+            fontSize: "9px",
             color: theme.mutedSoft,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
             fontWeight: 600,
-            padding: "3px 8px",
+            padding: "2px 6px",
             border: `1px solid ${theme.ruleSoft}`,
             borderRadius: "3px",
           }}
@@ -81,7 +81,7 @@ export function DemoTile({
       </div>
 
       {/* Bottom: title + default/hover swap */}
-      <div style={{ position: "relative", minHeight: "58px" }}>
+      <div style={{ position: "relative", minHeight: "46px" }}>
         {/* Default label */}
         <div
           style={{
@@ -95,10 +95,10 @@ export function DemoTile({
           <div
             style={{
               fontFamily: fontStack,
-              fontSize: "17px",
+              fontSize: "14px",
               fontWeight: 600,
               color: theme.ink,
-              letterSpacing: "-0.015em",
+              letterSpacing: "-0.01em",
               lineHeight: 1.25,
             }}
           >
@@ -108,9 +108,9 @@ export function DemoTile({
             <div
               style={{
                 fontFamily: fontStack,
-                fontSize: "12px",
+                fontSize: "11px",
                 color: theme.mutedSoft,
-                marginTop: "4px",
+                marginTop: "3px",
                 fontWeight: 500,
               }}
             >
@@ -129,17 +129,17 @@ export function DemoTile({
             inset: 0,
             display: "flex",
             alignItems: "center",
-            gap: "8px",
+            gap: "6px",
             fontFamily: fontStack,
-            fontSize: "16px",
+            fontSize: "13px",
             fontWeight: 600,
             color: theme.accent,
-            letterSpacing: "-0.01em",
+            letterSpacing: "-0.005em",
             pointerEvents: "none",
           }}
         >
           Coming soon
-          <ArrowRight size={15} />
+          <ArrowRight size={13} />
         </div>
       </div>
     </div>

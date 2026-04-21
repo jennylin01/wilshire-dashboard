@@ -79,7 +79,7 @@ export interface Programme {
   client: string;
   supplier: string;
   fee: number;
-  clientPM: string;
+  clientSponsor: string;
   workstreamLead: string;
   sponsors: string[];
   start: string;
