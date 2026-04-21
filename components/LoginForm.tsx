@@ -35,7 +35,9 @@ export function LoginForm() {
         return;
       }
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error || "Login failed");
+      // Include the HTTP status on screen so a non-technical user can report
+      // it back without needing DevTools.
+      setError(`[${res.status}] ${body.error || "Login failed"}`);
       setSubmitting(false);
     } catch {
       setError("Network error");
