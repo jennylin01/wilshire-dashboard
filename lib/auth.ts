@@ -14,6 +14,16 @@
 export const SESSION_COOKIE = "wilshire_session";
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
+// Single source of truth for the dashboard password. Trims whitespace so an
+// accidental trailing newline in the Render env var UI doesn't break auth.
+// Returns null if not set.
+export function getDashboardPassword(): string | null {
+  const raw = process.env.DASHBOARD_PASSWORD;
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 async function hmacKey(secret: string): Promise<CryptoKey> {
   return crypto.subtle.importKey(
     "raw",

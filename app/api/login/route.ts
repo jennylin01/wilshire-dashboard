@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   SESSION_COOKIE,
   SESSION_MAX_AGE_SECONDS,
+  getDashboardPassword,
   signSession,
 } from "@/lib/auth";
 
 // Constant-time-ish string comparison to avoid leaking timing info.
-// The passwords here are short and the attack surface is tiny, but this
-// is the right habit regardless.
 function safeEquals(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;
@@ -16,7 +15,7 @@ function safeEquals(a: string, b: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const expected = process.env.DASHBOARD_PASSWORD;
+  const expected = getDashboardPassword();
   if (!expected) {
     return NextResponse.json(
       { ok: false, error: "Service misconfigured" },
@@ -28,15 +27,22 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as { password?: unknown };
     if (typeof body.password !== "string" || body.password.length === 0) {
-      return NextResponse.json({ ok: false, error: "Password required" }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: "Password required" },
+        { status: 400 }
+      );
     }
-    password = body.password;
+    // Trim user input too — invisible characters from autofill or mobile
+    // keyboards have caused login failures for real users.
+    password = body.password.trim();
   } catch {
-    return NextResponse.json({ ok: false, error: "Bad request" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "Bad request" },
+      { status: 400 }
+    );
   }
 
   if (!safeEquals(password, expected)) {
-    // Small delay to slow down online guessing.
     await new Promise((r) => setTimeout(r, 400));
     return NextResponse.json(
       { ok: false, error: "Wrong password" },

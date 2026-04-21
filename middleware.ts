@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE, verifySession } from "@/lib/auth";
+import {
+  SESSION_COOKIE,
+  getDashboardPassword,
+  verifySession,
+} from "@/lib/auth";
 
 // Guards every route except:
 //   - /login page and /api/login (so users can actually log in)
@@ -22,7 +26,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const expected = process.env.DASHBOARD_PASSWORD;
+  const expected = getDashboardPassword();
   if (!expected) {
     return new NextResponse(
       "Service misconfigured: DASHBOARD_PASSWORD is not set.",
