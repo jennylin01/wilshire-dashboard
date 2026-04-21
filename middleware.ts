@@ -50,7 +50,21 @@ export async function middleware(req: NextRequest) {
     url.searchParams.delete("next");
   }
   url.searchParams.set("reason", reason);
-  return NextResponse.redirect(url);
+  const response = NextResponse.redirect(url);
+  // If the cookie was present but invalid, actively delete it so the next
+  // login isn't polluted by a cookie from a previous deploy / password.
+  if (reason === "invalid-session") {
+    response.cookies.set({
+      name: SESSION_COOKIE,
+      value: "",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 0,
+      path: "/",
+    });
+  }
+  return response;
 }
 
 export const config = {
