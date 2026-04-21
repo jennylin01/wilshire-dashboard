@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
+import { LogOut, RefreshCw } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
@@ -45,6 +45,11 @@ export function Dashboard({ data }: { data: DashboardData }) {
       await fetch("/api/revalidate", { method: "POST" });
       router.refresh();
     });
+  };
+
+  const handleLogout = async () => {
+    await fetch("/api/logout", { method: "POST" });
+    router.replace("/login");
   };
 
   const renderDetail = () => {
@@ -202,6 +207,32 @@ export function Dashboard({ data }: { data: DashboardData }) {
               />
             </button>
             <ThemeToggle />
+            <button
+              onClick={handleLogout}
+              style={{
+                width: "34px",
+                height: "34px",
+                border: `1px solid ${theme.rule}`,
+                background: "transparent",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: theme.ink,
+                borderRadius: "3px",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = theme.surfaceHover)
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "transparent")
+              }
+              title="Sign out"
+              aria-label="Sign out"
+            >
+              <LogOut size={14} />
+            </button>
           </div>
         </div>
       </div>
