@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: wilshire-dashboard
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NOTION_TOKEN
+        sync: false
+      - key: DASHBOARD_PASSWORD
+        sync: false
