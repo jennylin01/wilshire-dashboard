@@ -27,12 +27,16 @@ export function LoginForm() {
         body: JSON.stringify({ password }),
       });
       if (res.ok) {
-        router.replace(next.startsWith("/") ? next : "/");
-      } else {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(body.error || "Login failed");
-        setSubmitting(false);
+        // Hard navigation: bypasses any Next.js client-router quirks on the
+        // just-set session cookie. The browser reloads, middleware sees the
+        // cookie, user lands on the hub. Bulletproof.
+        const dest = next.startsWith("/") ? next : "/";
+        window.location.href = dest;
+        return;
       }
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setError(body.error || "Login failed");
+      setSubmitting(false);
     } catch {
       setError("Network error");
       setSubmitting(false);
