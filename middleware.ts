@@ -35,18 +35,21 @@ export async function middleware(req: NextRequest) {
   }
 
   const cookie = req.cookies.get(SESSION_COOKIE)?.value;
-  if (cookie && (await verifySession(cookie, expected))) {
-    return NextResponse.next();
+  let reason: "no-cookie" | "invalid-session" = "no-cookie";
+  if (cookie) {
+    const ok = await verifySession(cookie, expected);
+    if (ok) return NextResponse.next();
+    reason = "invalid-session";
   }
 
   const url = req.nextUrl.clone();
   url.pathname = "/login";
-  // Preserve the destination so we can send them back after login.
   if (pathname !== "/") {
     url.searchParams.set("next", pathname + req.nextUrl.search);
   } else {
     url.searchParams.delete("next");
   }
+  url.searchParams.set("reason", reason);
   return NextResponse.redirect(url);
 }
 

@@ -13,7 +13,12 @@ export function LoginForm() {
 
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const reason = params.get("reason");
+  const initialBanner =
+    reason === "invalid-session"
+      ? "Your session was rejected by the server. This usually means the dashboard password was changed. Sign in again."
+      : null;
+  const [error, setError] = useState<string | null>(initialBanner);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
