@@ -18,7 +18,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/api/login") ||
     pathname.startsWith("/api/logout") ||
     pathname.startsWith("/api/revalidate") ||
-    pathname.startsWith("/api/_diag")
+    pathname.startsWith("/api/diag")
   ) {
     return NextResponse.next();
   }
