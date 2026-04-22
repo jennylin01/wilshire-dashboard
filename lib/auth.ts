@@ -41,14 +41,17 @@ function toBase64Url(buf: ArrayBuffer): string {
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function fromBase64Url(s: string): ArrayBuffer {
+function fromBase64Url(s: string): Uint8Array {
   let b = s.replace(/-/g, "+").replace(/_/g, "/");
   while (b.length % 4) b += "=";
   const bin = atob(b);
+  // Allocate via ArrayBuffer explicitly so the backing store is a plain
+  // ArrayBuffer (not SharedArrayBuffer) — satisfies crypto.subtle.verify
+  // in the Edge runtime, which rejects loose ArrayBufferLike types.
   const buf = new ArrayBuffer(bin.length);
   const view = new Uint8Array(buf);
   for (let i = 0; i < bin.length; i++) view[i] = bin.charCodeAt(i);
-  return buf;
+  return view;
 }
 
 // Sign an arbitrary string value. Exposed so both signSession and the
@@ -108,7 +111,7 @@ export async function verifySessionWithReason(
     const ok = await crypto.subtle.verify(
       "HMAC",
       key,
-      fromBase64Url(sigB64),
+      fromBase64Url(sigB64) as unknown as BufferSource,
       new TextEncoder().encode(issuedAt)
     );
     return ok
