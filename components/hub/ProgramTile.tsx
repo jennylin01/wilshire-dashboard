@@ -125,15 +125,15 @@ export function ProgramTile({ data }: { data: DashboardData }) {
           </span>
         </span>
         <span>
-          <span style={{ color: theme.mutedSoft }}>Sponsor</span>{" "}
+          <span style={{ color: theme.mutedSoft }}>Fee</span>{" "}
           <span style={{ color: theme.ink, fontWeight: 600 }}>
-            {data.programme.clientSponsor}
+            ${data.programme.fee}k
           </span>
         </span>
         <span>
-          <span style={{ color: theme.mutedSoft }}>Lead</span>{" "}
+          <span style={{ color: theme.mutedSoft }}>Sponsor</span>{" "}
           <span style={{ color: theme.ink, fontWeight: 600 }}>
-            {data.programme.workstreamLead}
+            {data.programme.clientSponsor}
           </span>
         </span>
         <span style={{ marginLeft: "auto" }}>

@@ -11,7 +11,7 @@ export const weeklyDelta: WeeklyDelta = {
       direction: "down",
       label: "SOW still unsigned",
       detail:
-        "Blocks M1 invoice and gates all downstream provisioning. Chasing counter-signature.",
+        "Blocks M1 invoice ($80k) and gates all downstream provisioning. Chasing counter-signature.",
     },
     {
       direction: "flat",
