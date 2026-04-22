@@ -5,6 +5,7 @@ node_modules
 .next
 .vercel
 .DS_Store
+tsconfig.tsbuildinfo
 
 # Tooling output (QA reports, screenshots, etc.)
 .gstack/

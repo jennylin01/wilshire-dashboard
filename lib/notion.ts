@@ -9,6 +9,8 @@ export const DATA_SOURCES = {
   valueTracking: "46977b20-a8cd-4a8c-bd28-fbceaf6becbd",
   meetings: "8ab0d80e-7a93-42fb-ac36-164dc002824d",
   invoices: "c60f4f90-ad21-474d-8b42-09270ae3214a",
+  weeklyDelta: "93849d6f-33da-4b19-a8ff-ca026ed210e6",
+  weeklyDeltaChanges: "ffe39e59-6ffb-48cf-b41a-ce4387ada811",
 } as const;
 
 export const NOTION_TAG = "notion";
@@ -59,3 +61,7 @@ export const fetchMeetings = () =>
   cachedQuery(DATA_SOURCES.meetings, "meetings")();
 export const fetchInvoices = () =>
   cachedQuery(DATA_SOURCES.invoices, "invoices")();
+export const fetchWeeklyDelta = () =>
+  cachedQuery(DATA_SOURCES.weeklyDelta, "weeklyDelta")();
+export const fetchWeeklyDeltaChanges = () =>
+  cachedQuery(DATA_SOURCES.weeklyDeltaChanges, "weeklyDeltaChanges")();

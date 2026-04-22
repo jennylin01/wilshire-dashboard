@@ -7,6 +7,7 @@ import type {
   RAG,
   Risk,
   ValueMetric,
+  WeeklyDelta,
   Workstream,
   WorkstreamId,
 } from "./types";
@@ -360,7 +361,10 @@ function normalizeStatus(raw: string): MilestoneStatus {
   return match ?? "Not due";
 }
 
-export function mapMilestones(rawInvoices: unknown[]): Milestone[] {
+export function mapMilestones(
+  rawInvoices: unknown[],
+  contractedFee = 0
+): Milestone[] {
   const out: Milestone[] = [];
   for (const page of rawInvoices) {
     const props = safeProps(page);
@@ -368,8 +372,16 @@ export function mapMilestones(rawInvoices: unknown[]): Milestone[] {
     if (!titleRaw) continue;
     const { id, label } = parseMilestoneTitle(titleRaw);
     const week = parseWeekDue(readSelect(props["Week due"]));
-    const amount = readNumber(props["Amount"]) ?? 0;
     const pct = readNumber(props["% of total"]) ?? 0;
+    const rawAmount = readNumber(props["Amount"]);
+    // If Notion row has no Amount but does have % of total, derive $ from the
+    // contracted fee so the milestone still shows a business-case number.
+    const amount =
+      rawAmount != null && rawAmount > 0
+        ? rawAmount
+        : pct > 0 && contractedFee > 0
+          ? Math.round((pct / 100) * contractedFee)
+          : 0;
     const status = normalizeStatus(readSelect(props["Status"]));
     out.push({
       id,
@@ -397,6 +409,96 @@ const INVOICED_SIGNED: MilestoneStatus[] = [
   "Paid",
 ];
 const INVOICED_SENT: MilestoneStatus[] = ["Invoice sent", "Paid"];
+
+// ----- Weekly delta (Notion-backed) -----
+
+// Fallback shown if Notion has no weeks populated.
+const EMPTY_WEEKLY_DELTA: WeeklyDelta = {
+  weekOf: "—",
+  headline: "No weekly update yet — add a row to the Weekly delta database in Notion.",
+  changes: [],
+};
+
+function normalizeDirection(raw: string): "up" | "down" | "flat" {
+  const s = raw.toLowerCase();
+  if (s === "up") return "up";
+  if (s === "down") return "down";
+  return "flat";
+}
+
+export function mapWeeklyDelta(
+  rawWeeks: unknown[],
+  rawChanges: unknown[],
+  today: Date = new Date()
+): WeeklyDelta {
+  if (!rawWeeks.length) return EMPTY_WEEKLY_DELTA;
+
+  // Pick the week with the latest Week start ≤ today. If none qualify
+  // (e.g. future-dated only), fall back to the earliest week.
+  type ParsedWeek = {
+    id: string;
+    weekOf: string;
+    headline: string;
+    startMs: number;
+  };
+  const weeks: ParsedWeek[] = [];
+  for (const page of rawWeeks) {
+    const p = page as { id?: string };
+    const props = safeProps(page);
+    const weekOf = readTitle(props["Week of"]);
+    const headline = readRichText(props["Headline"]);
+    const startISO = readDate(props["Week start"]);
+    if (!weekOf) continue;
+    const startMs = startISO ? new Date(startISO).getTime() : NaN;
+    weeks.push({
+      id: p.id ?? weekOf,
+      weekOf,
+      headline,
+      startMs: isNaN(startMs) ? 0 : startMs,
+    });
+  }
+  if (!weeks.length) return EMPTY_WEEKLY_DELTA;
+
+  const todayMs = today.getTime();
+  const eligible = weeks
+    .filter((w) => w.startMs <= todayMs)
+    .sort((a, b) => b.startMs - a.startMs);
+  const chosen = eligible[0] ?? weeks.sort((a, b) => a.startMs - b.startMs)[0];
+
+  // Collect the changes that relate to the chosen week.
+  type ParsedChange = {
+    label: string;
+    detail: string;
+    direction: "up" | "down" | "flat";
+    order: number;
+    weekIds: string[];
+  };
+  const changes: ParsedChange[] = [];
+  for (const page of rawChanges) {
+    const props = safeProps(page);
+    const label = readTitle(props["Change"]);
+    if (!label) continue;
+    const weekIds = readRelation(props["Week"]);
+    changes.push({
+      label,
+      detail: readRichText(props["Detail"]),
+      direction: normalizeDirection(readSelect(props["Direction"])),
+      order: readNumber(props["Order"]) ?? 999,
+      weekIds,
+    });
+  }
+
+  const chosenChanges = changes
+    .filter((c) => c.weekIds.includes(chosen.id))
+    .sort((a, b) => a.order - b.order)
+    .map(({ direction, label, detail }) => ({ direction, label, detail }));
+
+  return {
+    weekOf: chosen.weekOf,
+    headline: chosen.headline || EMPTY_WEEKLY_DELTA.headline,
+    changes: chosenChanges,
+  };
+}
 
 export function computeInvoiceTotals(
   milestones: Milestone[],
