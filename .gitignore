@@ -8,3 +8,4 @@ node_modules
 
 # Tooling output (QA reports, screenshots, etc.)
 .gstack/
+*.swp
