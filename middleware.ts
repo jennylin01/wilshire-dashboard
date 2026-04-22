@@ -17,8 +17,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/login") ||
     pathname.startsWith("/api/login") ||
     pathname.startsWith("/api/logout") ||
-    pathname.startsWith("/api/revalidate") ||
-    pathname.startsWith("/api/diag")
+    pathname.startsWith("/api/revalidate")
   ) {
     return NextResponse.next();
   }
@@ -37,14 +36,10 @@ export async function middleware(req: NextRequest) {
 
   const cookie = req.cookies.get(SESSION_COOKIE)?.value;
   let reason: "no-cookie" | "invalid-session" = "no-cookie";
-  let verifyReason: string | undefined;
-  let verifyDetail: string | undefined;
   if (cookie) {
     const result = await verifySessionWithReason(cookie, expected);
     if (result.ok) return NextResponse.next();
     reason = "invalid-session";
-    verifyReason = result.reason;
-    verifyDetail = result.detail;
   }
 
   const url = req.nextUrl.clone();
@@ -55,9 +50,6 @@ export async function middleware(req: NextRequest) {
     url.searchParams.delete("next");
   }
   url.searchParams.set("reason", reason);
-  if (verifyReason) url.searchParams.set("vr", verifyReason);
-  if (verifyDetail) url.searchParams.set("vd", verifyDetail);
-  url.searchParams.set("mwNow", String(Math.floor(Date.now() / 1000)));
   const response = NextResponse.redirect(url);
   // If the cookie was present but invalid, actively delete it so the next
   // login isn't polluted by a cookie from a previous deploy / password.
