@@ -51,15 +51,25 @@ function fromBase64Url(s: string): ArrayBuffer {
   return buf;
 }
 
-export async function signSession(secret: string): Promise<string> {
-  const issuedAt = Math.floor(Date.now() / 1000).toString();
+// Sign an arbitrary string value. Exposed so both signSession and the
+// middleware's diagnostic re-sign can share one code path.
+export async function signString(
+  value: string,
+  secret: string
+): Promise<string> {
   const key = await hmacKey(secret);
   const sig = await crypto.subtle.sign(
     "HMAC",
     key,
-    new TextEncoder().encode(issuedAt)
+    new TextEncoder().encode(value)
   );
-  return `${issuedAt}.${toBase64Url(sig)}`;
+  return toBase64Url(sig);
+}
+
+export async function signSession(secret: string): Promise<string> {
+  const issuedAt = Math.floor(Date.now() / 1000).toString();
+  const sig = await signString(issuedAt, secret);
+  return `${issuedAt}.${sig}`;
 }
 
 export async function verifySession(
