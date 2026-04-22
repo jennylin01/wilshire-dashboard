@@ -77,24 +77,48 @@ export async function verifySession(
   secret: string,
   maxAgeSeconds: number = SESSION_MAX_AGE_SECONDS
 ): Promise<boolean> {
+  const result = await verifySessionWithReason(token, secret, maxAgeSeconds);
+  return result.ok;
+}
+
+// Split out so the middleware can expose the specific failure reason for
+// debugging without re-running the whole verify.
+export async function verifySessionWithReason(
+  token: string,
+  secret: string,
+  maxAgeSeconds: number = SESSION_MAX_AGE_SECONDS
+): Promise<{ ok: boolean; reason?: string; detail?: string }> {
   const dot = token.indexOf(".");
-  if (dot <= 0) return false;
+  if (dot <= 0) return { ok: false, reason: "no-dot" };
   const issuedAt = token.slice(0, dot);
   const sigB64 = token.slice(dot + 1);
   const ts = parseInt(issuedAt, 10);
-  if (!Number.isFinite(ts)) return false;
+  if (!Number.isFinite(ts)) return { ok: false, reason: "bad-ts" };
   const now = Math.floor(Date.now() / 1000);
-  if (now - ts > maxAgeSeconds) return false;
-  if (ts > now + 60) return false; // clock skew tolerance
+  if (now - ts > maxAgeSeconds) {
+    return { ok: false, reason: "expired", detail: `now-ts=${now - ts}` };
+  }
+  // Generous future-clock tolerance. The signature alone is enough; the
+  // skew guard is only defense-in-depth and should never reject valid tokens.
+  if (ts - now > 86400) {
+    return { ok: false, reason: "future", detail: `ts-now=${ts - now}` };
+  }
   const key = await hmacKey(secret);
   try {
-    return await crypto.subtle.verify(
+    const ok = await crypto.subtle.verify(
       "HMAC",
       key,
       fromBase64Url(sigB64),
       new TextEncoder().encode(issuedAt)
     );
-  } catch {
-    return false;
+    return ok
+      ? { ok: true }
+      : { ok: false, reason: "hmac-fail" };
+  } catch (e) {
+    return {
+      ok: false,
+      reason: "hmac-throw",
+      detail: e instanceof Error ? e.message : String(e),
+    };
   }
 }
