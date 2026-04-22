@@ -61,6 +61,7 @@ export function VitalsStrip({
         value={openHighRisks}
         sub="Monitor daily"
         accent={theme.red}
+        onClick={() => onOpen({ type: "risks" })}
       />
       <KPI
         label="Late client commitments"

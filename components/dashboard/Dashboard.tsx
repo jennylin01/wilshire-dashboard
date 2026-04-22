@@ -19,6 +19,7 @@ import { CommitmentsSummary } from "./CommitmentsSummary";
 import { ValueTrackingSummary } from "./ValueTrackingSummary";
 import { WorkstreamDetail } from "./details/WorkstreamDetail";
 import { RiskDetail } from "./details/RiskDetail";
+import { RisksDetail } from "./details/RisksDetail";
 import { CommitmentsDetail } from "./details/CommitmentsDetail";
 import { DecisionsDetail } from "./details/DecisionsDetail";
 import { MilestonesDetail } from "./details/MilestonesDetail";
@@ -30,6 +31,7 @@ import type { DashboardData, WorkstreamId } from "@/lib/types";
 export type DetailRef =
   | { type: "workstream"; id: WorkstreamId }
   | { type: "risk"; id: string }
+  | { type: "risks" }
   | { type: "commitment" }
   | { type: "decisions" }
   | { type: "milestones" }
@@ -74,6 +76,15 @@ export function Dashboard({ data }: { data: DashboardData }) {
       const r = data.risks.find((x) => x.id === detail.id);
       if (!r) return null;
       return <RiskDetail risk={r} onClose={close} />;
+    }
+    if (detail.type === "risks") {
+      return (
+        <RisksDetail
+          risks={data.risks}
+          onOpenRisk={(id) => setDetail({ type: "risk", id })}
+          onClose={close}
+        />
+      );
     }
     if (detail.type === "commitment") {
       return (
