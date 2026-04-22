@@ -54,12 +54,6 @@ export function Masthead({ programme }: { programme: Programme }) {
         }}
       >
         <div>
-          <span style={{ color: theme.mutedSoft }}>Fee</span>{" "}
-          <span style={{ color: theme.ink, fontWeight: 500 }}>
-            ${programme.fee}k fixed
-          </span>
-        </div>
-        <div>
           <span style={{ color: theme.mutedSoft }}>Sponsor</span>{" "}
           <span style={{ color: theme.ink, fontWeight: 500 }}>
             {programme.clientSponsor}

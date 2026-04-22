@@ -78,7 +78,7 @@ const WORKSTREAM_META: Record<
     sponsor: "Christina Walsh",
     thesis:
       "AP automation — email routing, doc intelligence, mismatch detection, query auto-response.",
-    milestones: ["M2 (Wk4, $60k)", "M3 (Wk5, $80k)"],
+    milestones: ["M2 (Wk4)", "M3 (Wk5)"],
   },
   srm: {
     id: "srm",
@@ -88,7 +88,7 @@ const WORKSTREAM_META: Record<
     sponsor: "Todd Kessler",
     thesis:
       "Salesforce gap report, duplicate resolution, Accordion data mart integration.",
-    milestones: ["M4 (Wk4, $40k)", "M5 (Wk7, $80k)"],
+    milestones: ["M4 (Wk4)", "M5 (Wk7)"],
   },
   pm: {
     id: "pm",
@@ -108,7 +108,7 @@ const WORKSTREAM_META: Record<
     sponsor: "Hanna Valva",
     thesis:
       "Mobilisation, governance rhythm, status reporting, change control.",
-    milestones: ["M1 (Wk1, $80k)", "M6 (Wk8, $60k)"],
+    milestones: ["M1 (Wk1)", "M6 (Wk8)"],
   },
 };
 

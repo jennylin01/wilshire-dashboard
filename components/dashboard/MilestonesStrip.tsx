@@ -6,10 +6,6 @@ import { fontStack, monoStack, type ThemeTokens } from "@/lib/theme";
 import type { Milestone, MilestoneStatus, Programme } from "@/lib/types";
 import type { DetailRef } from "./Dashboard";
 
-function fmtAmount(amount: number): string {
-  return `$${Math.round(amount / 1000)}k`;
-}
-
 function statusPillColor(
   theme: ThemeTokens,
   status: MilestoneStatus
@@ -47,10 +43,9 @@ export function MilestonesStrip({
 }) {
   const { theme } = useTheme();
 
-  // Only sized milestones appear. Placeholders are hidden entirely.
-  const sized = milestones.filter(
-    (m) => m.status !== "Placeholder" && m.amount > 0
-  );
+  // Hide placeholders; show the rest regardless of whether Amount is set
+  // (we removed the $ display — amount presence is irrelevant now).
+  const sized = milestones.filter((m) => m.status !== "Placeholder");
 
   return (
     <>
@@ -97,8 +92,9 @@ export function MilestonesStrip({
                   style={{
                     fontFamily: monoStack,
                     fontSize: "13px",
-                    color: theme.muted,
-                    marginBottom: "10px",
+                    color: isCurrent ? theme.accent : theme.muted,
+                    marginBottom: "14px",
+                    fontWeight: isCurrent ? 600 : 400,
                   }}
                 >
                   {m.id} · Wk{m.week}
@@ -106,23 +102,13 @@ export function MilestonesStrip({
                 <div
                   style={{
                     fontFamily: fontStack,
-                    fontSize: "26px",
+                    fontSize: "16px",
                     color: isCurrent ? theme.accent : theme.ink,
-                    fontWeight: 700,
-                    lineHeight: 1,
-                    marginBottom: "10px",
-                    letterSpacing: "-0.03em",
-                  }}
-                >
-                  {fmtAmount(m.amount)}
-                </div>
-                <div
-                  style={{
-                    fontSize: "14px",
-                    color: theme.inkSoft,
-                    lineHeight: 1.35,
-                    marginBottom: "10px",
-                    minHeight: "32px",
+                    fontWeight: 600,
+                    lineHeight: 1.3,
+                    marginBottom: "14px",
+                    minHeight: "62px",
+                    letterSpacing: "-0.015em",
                   }}
                 >
                   {m.label}
@@ -135,7 +121,6 @@ export function MilestonesStrip({
                     fontWeight: 600,
                   }}
                 >
-                  {m.pct ? `${m.pct}% · ` : ""}
                   {statusLabel(m.status)}
                 </div>
               </div>

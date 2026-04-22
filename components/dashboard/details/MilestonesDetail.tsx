@@ -3,12 +3,8 @@
 import { useTheme } from "@/components/ThemeProvider";
 import { DetailPanel } from "@/components/dashboard/DetailPanel";
 import { Pill } from "@/components/ui/Pill";
-import { fontStack, monoStack, type ThemeTokens } from "@/lib/theme";
+import { monoStack, type ThemeTokens } from "@/lib/theme";
 import type { Milestone, MilestoneStatus, Programme } from "@/lib/types";
-
-function fmtAmount(amount: number): string {
-  return `$${Math.round(amount / 1000)}k`;
-}
 
 function statusStyle(
   theme: ThemeTokens,
@@ -44,10 +40,8 @@ export function MilestonesDetail({
   onClose: () => void;
 }) {
   const { theme } = useTheme();
-  // Show only sized milestones — placeholders are hidden.
-  const sized = milestones.filter(
-    (m) => m.status !== "Placeholder" && m.amount > 0
-  );
+  // Show everything except placeholders; Amount display was removed.
+  const sized = milestones.filter((m) => m.status !== "Placeholder");
 
   return (
     <DetailPanel
@@ -101,21 +95,8 @@ export function MilestonesDetail({
                 }}
               >
                 Week {m.week || "TBD"}
-                {m.pct ? ` · ${m.pct}%` : ""}
                 {m.workstream ? ` · ${m.workstream}` : ""}
               </div>
-            </div>
-            <div
-              style={{
-                fontFamily: fontStack,
-                fontSize: "18px",
-                color: m.status === "Placeholder" ? theme.mutedSoft : theme.ink,
-                minWidth: "70px",
-                textAlign: "right",
-                fontWeight: 600,
-              }}
-            >
-              {fmtAmount(m.amount)}
             </div>
             <Pill label={m.status} color={color} bg={bg} />
           </div>
