@@ -51,6 +51,16 @@ export async function middleware(req: NextRequest) {
     url.searchParams.delete("next");
   }
   url.searchParams.set("reason", reason);
+  // TEMP diagnostic: expose middleware's view of env var so we can compare
+  // against /api/diag (API-route view). Remove once auth is confirmed working.
+  url.searchParams.set("mwLen", String(expected.length));
+  if (expected.length > 0) {
+    url.searchParams.set("mwFirst", String(expected.charCodeAt(0)));
+    url.searchParams.set(
+      "mwLast",
+      String(expected.charCodeAt(expected.length - 1))
+    );
+  }
   const response = NextResponse.redirect(url);
   // If the cookie was present but invalid, actively delete it so the next
   // login isn't polluted by a cookie from a previous deploy / password.
