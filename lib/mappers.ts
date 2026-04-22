@@ -1,6 +1,9 @@
 import type {
   Commitment,
   Decision,
+  InvoiceTotals,
+  Milestone,
+  MilestoneStatus,
   RAG,
   Risk,
   ValueMetric,
@@ -40,6 +43,12 @@ const readDate = (p: Prop | undefined): string | null => {
   if (!p || p.type !== "date") return null;
   const d = (p as { date?: { start?: string } | null }).date;
   return d?.start ?? null;
+};
+
+const readNumber = (p: Prop | undefined): number | null => {
+  if (!p || p.type !== "number") return null;
+  const v = (p as { number?: number | null }).number;
+  return typeof v === "number" ? v : null;
 };
 
 const readRelation = (p: Prop | undefined): string[] => {
@@ -312,4 +321,94 @@ export function mapValueMetrics(raw: unknown[]): ValueMetric[] {
     });
   }
   return out;
+}
+
+// ----- Invoice tracker → Milestones -----
+
+// Titles look like "M1 — Mobilisation complete" or
+// "M-PM1 — PM Sprint 1 demo [PLACEHOLDER]". Extract the prefix id + clean label.
+function parseMilestoneTitle(title: string): { id: string; label: string } {
+  const m = title.match(/^([MC][-A-Za-z0-9]*)\s*[—–-]\s*(.+)$/);
+  if (m) {
+    const [, id, rest] = m;
+    const label = rest.replace(/\s*\[PLACEHOLDER\]\s*$/i, "").trim();
+    return { id, label };
+  }
+  return { id: title.split(/\s+/)[0] || "M?", label: title };
+}
+
+// "Week 1 — Apr 20-26" → 1. "Ongoing" / unknown → 0.
+function parseWeekDue(raw: string): number {
+  const m = raw.match(/Week\s+(\d+)/i);
+  return m ? parseInt(m[1], 10) : 0;
+}
+
+const MILESTONE_STATUSES: readonly MilestoneStatus[] = [
+  "Not due",
+  "Due",
+  "Signed off",
+  "Invoice sent",
+  "Paid",
+  "Disputed",
+  "Placeholder",
+];
+
+function normalizeStatus(raw: string): MilestoneStatus {
+  const match = MILESTONE_STATUSES.find(
+    (s) => s.toLowerCase() === raw.toLowerCase()
+  );
+  return match ?? "Not due";
+}
+
+export function mapMilestones(rawInvoices: unknown[]): Milestone[] {
+  const out: Milestone[] = [];
+  for (const page of rawInvoices) {
+    const props = safeProps(page);
+    const titleRaw = readTitle(props["Milestone"]);
+    if (!titleRaw) continue;
+    const { id, label } = parseMilestoneTitle(titleRaw);
+    const week = parseWeekDue(readSelect(props["Week due"]));
+    const amount = readNumber(props["Amount"]) ?? 0;
+    const pct = readNumber(props["% of total"]) ?? 0;
+    const status = normalizeStatus(readSelect(props["Status"]));
+    out.push({
+      id,
+      week,
+      amount,
+      label,
+      status,
+      pct,
+      workstream: readSelect(props["Workstream"]) || "",
+      signOffDate: readDate(props["Sign-off date"]),
+      invoiceSentDate: readDate(props["Invoice sent date"]),
+      paidDate: readDate(props["Paid date"]),
+    });
+  }
+  // Sort by week ascending; within a week, by amount descending (bigger first).
+  out.sort((a, b) => a.week - b.week || b.amount - a.amount);
+  return out;
+}
+
+// ----- Invoice totals (derived from milestones) -----
+
+const INVOICED_SIGNED: MilestoneStatus[] = [
+  "Signed off",
+  "Invoice sent",
+  "Paid",
+];
+const INVOICED_SENT: MilestoneStatus[] = ["Invoice sent", "Paid"];
+
+export function computeInvoiceTotals(
+  milestones: Milestone[],
+  contractedFee: number
+): InvoiceTotals {
+  const sumWhere = (pred: (m: Milestone) => boolean) =>
+    milestones.filter(pred).reduce((s, m) => s + m.amount, 0);
+  return {
+    contractedFee,
+    pipelineSized: sumWhere((m) => m.status !== "Placeholder" && m.amount > 0),
+    signedOff: sumWhere((m) => INVOICED_SIGNED.includes(m.status)),
+    invoicedSent: sumWhere((m) => INVOICED_SENT.includes(m.status)),
+    paid: sumWhere((m) => m.status === "Paid"),
+  };
 }

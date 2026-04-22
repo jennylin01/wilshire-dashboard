@@ -3,8 +3,34 @@
 import { useTheme } from "@/components/ThemeProvider";
 import { DetailPanel } from "@/components/dashboard/DetailPanel";
 import { Pill } from "@/components/ui/Pill";
-import { fontStack, monoStack } from "@/lib/theme";
-import type { Milestone, Programme } from "@/lib/types";
+import { fontStack, monoStack, type ThemeTokens } from "@/lib/theme";
+import type { Milestone, MilestoneStatus, Programme } from "@/lib/types";
+
+function fmtAmount(amount: number): string {
+  return `$${Math.round(amount / 1000)}k`;
+}
+
+function statusStyle(
+  theme: ThemeTokens,
+  status: MilestoneStatus
+): { color: string; bg: string } {
+  switch (status) {
+    case "Paid":
+      return { color: theme.green, bg: theme.greenBg };
+    case "Invoice sent":
+    case "Signed off":
+      return { color: theme.accent, bg: theme.accentSoft };
+    case "Due":
+      return { color: theme.amber, bg: theme.amberBg };
+    case "Disputed":
+      return { color: theme.red, bg: theme.redBg };
+    case "Placeholder":
+      return { color: theme.mutedSoft, bg: theme.surfaceElevated };
+    case "Not due":
+    default:
+      return { color: theme.muted, bg: theme.surfaceElevated };
+  }
+}
 
 export function MilestonesDetail({
   milestones,
@@ -18,155 +44,108 @@ export function MilestonesDetail({
   onClose: () => void;
 }) {
   const { theme } = useTheme();
+  // Show only sized milestones — placeholders are hidden.
+  const sized = milestones.filter(
+    (m) => m.status !== "Placeholder" && m.amount > 0
+  );
+
   return (
     <DetailPanel
-      title="Milestones & invoicing"
-      subtitle="6 committed · 3 PM placeholders"
+      title="Key milestones"
+      subtitle={`${sized.length} milestones · ${programme.totalWeeks}-week engagement`}
       notionUrl={notionUrl}
       onClose={onClose}
     >
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "8px",
-          marginBottom: "24px",
-        }}
-      >
-        <div
-          style={{
-            padding: "16px",
-            background: theme.surfaceElevated,
-            border: `1px solid ${theme.rule}`,
-            borderRadius: "3px",
-          }}
-        >
+      {sized.map((m, i) => {
+        const { color, bg } = statusStyle(theme, m.status);
+        return (
           <div
+            key={m.id + "-" + m.week + "-" + i}
             style={{
-              fontSize: "13px",
-              fontFamily: fontStack,
-              color: theme.muted,
-              marginBottom: "6px",
-              fontWeight: 500,
+              padding: "14px 0",
+              borderBottom:
+                i < sized.length - 1
+                  ? `1px solid ${theme.ruleSoft}`
+                  : "none",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
             }}
           >
-            Total fee
-          </div>
-          <div
-            style={{
-              fontFamily: fontStack,
-              fontSize: "26px",
-              color: theme.ink,
-              fontWeight: 600,
-            }}
-          >
-            ${programme.fee}k
-          </div>
-        </div>
-        <div
-          style={{
-            padding: "16px",
-            background: theme.surfaceElevated,
-            border: `1px solid ${theme.rule}`,
-            borderRadius: "3px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "13px",
-              fontFamily: fontStack,
-              color: theme.muted,
-              marginBottom: "6px",
-              fontWeight: 500,
-            }}
-          >
-            Invoiced to date
-          </div>
-          <div
-            style={{
-              fontFamily: fontStack,
-              fontSize: "26px",
-              color: theme.ink,
-              fontWeight: 600,
-            }}
-          >
-            $0k
-          </div>
-        </div>
-      </div>
-      {milestones.map((m, i) => (
-        <div
-          key={m.id}
-          style={{
-            padding: "14px 0",
-            borderBottom:
-              i < milestones.length - 1
-                ? `1px solid ${theme.ruleSoft}`
-                : "none",
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: monoStack,
-              fontSize: "14px",
-              color: theme.muted,
-              width: "48px",
-            }}
-          >
-            {m.id}
-          </div>
-          <div style={{ flex: 1 }}>
             <div
               style={{
-                fontSize: "15px",
-                color: theme.ink,
-                marginBottom: "4px",
-                fontWeight: 500,
-              }}
-            >
-              {m.label}
-            </div>
-            <div
-              style={{
-                fontSize: "14px",
-                color: theme.muted,
                 fontFamily: monoStack,
+                fontSize: "13px",
+                color: theme.muted,
+                width: "60px",
               }}
             >
-              Week {m.week} · {m.pct}%
+              {m.id}
             </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: "14px",
+                  color: theme.ink,
+                  marginBottom: "4px",
+                  fontWeight: 500,
+                }}
+              >
+                {m.label}
+              </div>
+              <div
+                style={{
+                  fontSize: "13px",
+                  color: theme.muted,
+                  fontFamily: monoStack,
+                }}
+              >
+                Week {m.week || "TBD"}
+                {m.pct ? ` · ${m.pct}%` : ""}
+                {m.workstream ? ` · ${m.workstream}` : ""}
+              </div>
+            </div>
+            <div
+              style={{
+                fontFamily: fontStack,
+                fontSize: "18px",
+                color: m.status === "Placeholder" ? theme.mutedSoft : theme.ink,
+                minWidth: "70px",
+                textAlign: "right",
+                fontWeight: 600,
+              }}
+            >
+              {fmtAmount(m.amount)}
+            </div>
+            <Pill label={m.status} color={color} bg={bg} />
           </div>
-          <div
-            style={{
-              fontFamily: fontStack,
-              fontSize: "18px",
-              color: theme.ink,
-              minWidth: "70px",
-              textAlign: "right",
-              fontWeight: 600,
-            }}
-          >
-            ${m.amount}k
-          </div>
-          <Pill
-            label={m.status === "in-progress" ? "In progress" : "Upcoming"}
-            color={m.status === "in-progress" ? theme.amber : theme.muted}
-            bg={m.status === "in-progress" ? theme.amberBg : theme.surfaceElevated}
-          />
+        );
+      })}
+      {milestones.length === 0 && (
+        <div
+          style={{
+            color: theme.muted,
+            fontSize: "14px",
+            padding: "14px 0",
+          }}
+        >
+          No milestones defined yet. Add rows to the Invoice tracker in
+          Notion.
         </div>
-      ))}
+      )}
       <div
         style={{
-          padding: "14px 0",
-          fontSize: "15px",
-          color: theme.muted,
-          fontFamily: fontStack,
+          marginTop: "24px",
+          paddingTop: "16px",
+          borderTop: `1px solid ${theme.ruleSoft}`,
+          fontFamily: monoStack,
+          fontSize: "11px",
+          color: theme.mutedSoft,
+          lineHeight: 1.5,
         }}
       >
-        + M-PM1 (Wk4) · M-PM2 (Wk7) · M-PM3 (Wk9) — sized after Mark P sign-off
+        Live from Notion Invoice tracker. Programme is Week{" "}
+        {programme.currentWeek} of {programme.totalWeeks}.
       </div>
     </DetailPanel>
   );

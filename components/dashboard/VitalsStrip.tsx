@@ -26,23 +26,29 @@ export function VitalsStrip({
   const pendingDecisions = data.decisions.filter(
     (d) => d.status === "Pending decision"
   ).length;
-  const invoicePipeline = data.milestones.reduce((s, m) => s + m.amount, 0);
 
   // Overall RAG = worst RAG across workstreams
   const ragOrder = { green: 0, amber: 1, red: 2 } as const;
   const overall = data.workstreams
     .map((w) => w.rag)
-    .reduce<"green" | "amber" | "red">((acc, r) => (ragOrder[r] > ragOrder[acc] ? r : acc), "green");
+    .reduce<"green" | "amber" | "red">(
+      (acc, r) => (ragOrder[r] > ragOrder[acc] ? r : acc),
+      "green"
+    );
   const overallLabel =
     overall === "red" ? "Red" : overall === "amber" ? "Amber" : "Green";
   const overallAccent =
-    overall === "red" ? theme.red : overall === "amber" ? theme.amber : theme.green;
+    overall === "red"
+      ? theme.red
+      : overall === "amber"
+        ? theme.amber
+        : theme.green;
 
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(5, 1fr)",
+        gridTemplateColumns: "repeat(4, 1fr)",
         gap: "1px",
         background: theme.rule,
         border: `1px solid ${theme.rule}`,
@@ -76,13 +82,6 @@ export function VitalsStrip({
         sub="Open items"
         accent={theme.amber}
         onClick={() => onOpen({ type: "decisions" })}
-      />
-      <KPI
-        label="Invoice pipeline"
-        value={`$${invoicePipeline}k`}
-        sub="$0k invoiced"
-        accent={theme.ink}
-        onClick={() => onOpen({ type: "milestones" })}
       />
     </div>
   );

@@ -1,20 +1,13 @@
-import type { Milestone, Programme } from "./types";
+import type { Programme } from "./types";
 
-// Hardcoded from the SOW. Source of truth is the signed statement of work.
-export const milestones: Milestone[] = [
-  { id: "M1", week: 1, amount: 80, label: "Mobilisation complete", status: "in-progress", pct: 20 },
-  { id: "M2", week: 4, amount: 60, label: "F&A end-to-end demo", status: "upcoming", pct: 15 },
-  { id: "M3", week: 5, amount: 80, label: "F&A UAT + measurement report", status: "upcoming", pct: 20 },
-  { id: "M4", week: 4, amount: 40, label: "S&RM gap report walkthrough", status: "upcoming", pct: 10 },
-  { id: "M5", week: 7, amount: 80, label: "S&RM UAT + final gap report", status: "upcoming", pct: 20 },
-  { id: "M6", week: 8, amount: 60, label: "Final acceptance + prod readiness", status: "upcoming", pct: 15 },
-];
-
+// Programme-level metadata lives here. Milestones themselves now live in the
+// Notion Invoice tracker (collection://c60f4f90-ad21-474d-8b42-09270ae3214a)
+// and are fetched live — edit them in Notion, not in this file.
 export const programme: Programme = {
   name: "Wilshire — AI Acceleration",
   client: "Wilshire Advisors LLC",
   supplier: "Motive Create US, LLC",
-  fee: 400,
+  fee: 400, // thousands of dollars; contracted SOW value
   clientSponsor: "Hanna Valva (CTO)",
   workstreamLead: "Mo Beldo",
   sponsors: ["Christina Walsh, CFO", "Todd Kessler, CRO", "Leah Emkin, OCIO"],
