@@ -7,10 +7,27 @@ services:
     buildCommand: npm install && npm run build
     startCommand: npm start
     autoDeploy: true
+    # Custom domains (delivery.motivecreate.com) are configured in the Render
+    # dashboard UI (Settings → Custom Domains), not here.
     envVars:
       - key: NODE_VERSION
         value: "20"
       - key: NOTION_TOKEN
         sync: false
+      # Legacy — still used as the Wilshire client password fallback AND as
+      # the session-signing secret fallback. Safe to keep until rotated.
       - key: DASHBOARD_PASSWORD
+        sync: false
+      # Master hub password — gates scope=motive sessions. Only Motive users
+      # with this password see the master hub at /.
+      - key: MOTIVE_PASSWORD
+        sync: false
+      # Preferred session-signing secret (replaces DASHBOARD_PASSWORD for HMAC).
+      # Set to any long random string; rotating invalidates all sessions.
+      - key: SESSION_SECRET
+        sync: false
+      # Per-engagement client passwords. Add one CLIENT_PASSWORD_<SLUG> per
+      # engagement. If CLIENT_PASSWORD_WILSHIRE is unset, auth falls back to
+      # DASHBOARD_PASSWORD for Wilshire (migration-safe).
+      - key: CLIENT_PASSWORD_WILSHIRE
         sync: false

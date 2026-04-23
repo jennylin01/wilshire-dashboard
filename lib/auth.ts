@@ -1,27 +1,58 @@
-// Session signing helpers. HMAC-SHA256 using DASHBOARD_PASSWORD as the secret.
+// Session signing helpers. HMAC-SHA256 using a server-side secret.
 //
-// Cookie value format: "<issuedAtUnix>.<base64url-signature>"
+// Cookie value format: "<scope>|<issuedAtUnix>.<base64url-signature>"
+//   e.g.  "motive|1714000000.abc..."
+//   e.g.  "client:wilshire|1714000000.abc..."
+//
+// Scope semantics:
+//   - "motive"          → can read the master hub (/) and ANY client dashboard
+//   - "client:<slug>"   → can read only /<slug> (and aliases like /program)
 //
 // Security properties:
-//   - Tamper-evident: changing the timestamp invalidates the signature.
-//   - Rotates on password change: HMAC secret IS the password, so updating
-//     DASHBOARD_PASSWORD in Render immediately logs everyone out.
+//   - Tamper-evident: changing scope or timestamp invalidates the signature.
+//   - HMAC secret is SESSION_SECRET env var (preferred) or DASHBOARD_PASSWORD
+//     (legacy fallback). Rotating the secret immediately logs everyone out.
 //   - Expires after `maxAgeSeconds` (default 7 days).
-//   - httpOnly + sameSite=strict cookie; never readable from client JS.
+//   - httpOnly + sameSite=lax cookie; never readable from client JS.
 //
 // Edge-runtime compatible (Web Crypto, TextEncoder, atob/btoa).
 
 export const SESSION_COOKIE = "wilshire_session";
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
-// Single source of truth for the dashboard password. Trims whitespace so an
-// accidental trailing newline in the Render env var UI doesn't break auth.
-// Returns null if not set.
-export function getDashboardPassword(): string | null {
-  const raw = process.env.DASHBOARD_PASSWORD;
-  if (!raw) return null;
-  const trimmed = raw.trim();
-  return trimmed.length > 0 ? trimmed : null;
+export type Scope =
+  | { kind: "motive" }
+  | { kind: "client"; slug: string };
+
+export function scopeToString(s: Scope): string {
+  return s.kind === "motive" ? "motive" : `client:${s.slug}`;
+}
+
+export function parseScope(raw: string): Scope | null {
+  if (raw === "motive") return { kind: "motive" };
+  if (raw.startsWith("client:")) {
+    const slug = raw.slice("client:".length);
+    if (!/^[a-z0-9-]+$/.test(slug)) return null;
+    return { kind: "client", slug };
+  }
+  return null;
+}
+
+// True if the given scope grants access to the given engagement slug.
+// Motive scope = everything. Client scope = only its own slug.
+export function scopeCanAccessSlug(scope: Scope, slug: string): boolean {
+  if (scope.kind === "motive") return true;
+  return scope.kind === "client" && scope.slug === slug;
+}
+
+// The HMAC secret. Prefers SESSION_SECRET; falls back to DASHBOARD_PASSWORD
+// for migration from the single-tenant setup.
+export function getSessionSecret(): string | null {
+  const preferred = process.env.SESSION_SECRET?.trim();
+  if (preferred && preferred.length > 0) return preferred;
+  const legacy = process.env.DASHBOARD_PASSWORD?.trim();
+  if (legacy && legacy.length > 0) return legacy;
+  return null;
 }
 
 async function hmacKey(secret: string): Promise<CryptoKey> {
@@ -45,17 +76,12 @@ function fromBase64Url(s: string): Uint8Array {
   let b = s.replace(/-/g, "+").replace(/_/g, "/");
   while (b.length % 4) b += "=";
   const bin = atob(b);
-  // Allocate via ArrayBuffer explicitly so the backing store is a plain
-  // ArrayBuffer (not SharedArrayBuffer) — satisfies crypto.subtle.verify
-  // in the Edge runtime, which rejects loose ArrayBufferLike types.
   const buf = new ArrayBuffer(bin.length);
   const view = new Uint8Array(buf);
   for (let i = 0; i < bin.length; i++) view[i] = bin.charCodeAt(i);
   return view;
 }
 
-// Sign an arbitrary string value. Exposed so both signSession and the
-// middleware's diagnostic re-sign can share one code path.
 export async function signString(
   value: string,
   secret: string
@@ -69,53 +95,64 @@ export async function signString(
   return toBase64Url(sig);
 }
 
-export async function signSession(secret: string): Promise<string> {
+export async function signSession(
+  scope: Scope,
+  secret: string
+): Promise<string> {
   const issuedAt = Math.floor(Date.now() / 1000).toString();
-  const sig = await signString(issuedAt, secret);
-  return `${issuedAt}.${sig}`;
+  const scopeStr = scopeToString(scope);
+  // Signed payload = "<scope>|<issuedAt>". Anything else is tamper-evident.
+  const payload = `${scopeStr}|${issuedAt}`;
+  const sig = await signString(payload, secret);
+  return `${scopeStr}|${issuedAt}.${sig}`;
+}
+
+export interface VerifyResult {
+  ok: boolean;
+  scope?: Scope;
+  reason?: string;
+  detail?: string;
 }
 
 export async function verifySession(
   token: string,
   secret: string,
   maxAgeSeconds: number = SESSION_MAX_AGE_SECONDS
-): Promise<boolean> {
-  const result = await verifySessionWithReason(token, secret, maxAgeSeconds);
-  return result.ok;
-}
-
-// Split out so the middleware can expose the specific failure reason for
-// debugging without re-running the whole verify.
-export async function verifySessionWithReason(
-  token: string,
-  secret: string,
-  maxAgeSeconds: number = SESSION_MAX_AGE_SECONDS
-): Promise<{ ok: boolean; reason?: string; detail?: string }> {
-  const dot = token.indexOf(".");
+): Promise<VerifyResult> {
+  // Expected format: "<scope>|<issuedAt>.<sig>"
+  const pipe = token.indexOf("|");
+  if (pipe <= 0) return { ok: false, reason: "no-pipe" };
+  const scopeStr = token.slice(0, pipe);
+  const rest = token.slice(pipe + 1);
+  const dot = rest.indexOf(".");
   if (dot <= 0) return { ok: false, reason: "no-dot" };
-  const issuedAt = token.slice(0, dot);
-  const sigB64 = token.slice(dot + 1);
+  const issuedAt = rest.slice(0, dot);
+  const sigB64 = rest.slice(dot + 1);
+
+  const scope = parseScope(scopeStr);
+  if (!scope) return { ok: false, reason: "bad-scope" };
+
   const ts = parseInt(issuedAt, 10);
   if (!Number.isFinite(ts)) return { ok: false, reason: "bad-ts" };
   const now = Math.floor(Date.now() / 1000);
   if (now - ts > maxAgeSeconds) {
     return { ok: false, reason: "expired", detail: `now-ts=${now - ts}` };
   }
-  // Generous future-clock tolerance. The signature alone is enough; the
-  // skew guard is only defense-in-depth and should never reject valid tokens.
   if (ts - now > 86400) {
     return { ok: false, reason: "future", detail: `ts-now=${ts - now}` };
   }
+
+  const payload = `${scopeStr}|${issuedAt}`;
   const key = await hmacKey(secret);
   try {
     const ok = await crypto.subtle.verify(
       "HMAC",
       key,
       fromBase64Url(sigB64) as unknown as BufferSource,
-      new TextEncoder().encode(issuedAt)
+      new TextEncoder().encode(payload)
     );
     return ok
-      ? { ok: true }
+      ? { ok: true, scope }
       : { ok: false, reason: "hmac-fail" };
   } catch (e) {
     return {

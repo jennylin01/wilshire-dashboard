@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   SESSION_COOKIE,
   SESSION_MAX_AGE_SECONDS,
-  getDashboardPassword,
+  getSessionSecret,
   signSession,
+  type Scope,
 } from "@/lib/auth";
+import { findEngagementByPassword } from "@/lib/engagements";
 
-// Constant-time-ish string comparison to avoid leaking timing info.
 function safeEquals(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;
@@ -14,9 +15,14 @@ function safeEquals(a: string, b: string): boolean {
   return diff === 0;
 }
 
+function getMotivePassword(): string | null {
+  const raw = process.env.MOTIVE_PASSWORD?.trim();
+  return raw && raw.length > 0 ? raw : null;
+}
+
 export async function POST(req: NextRequest) {
-  const expected = getDashboardPassword();
-  if (!expected) {
+  const secret = getSessionSecret();
+  if (!secret) {
     return NextResponse.json(
       { ok: false, error: "Service misconfigured" },
       { status: 503 }
@@ -32,8 +38,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    // Trim user input too — invisible characters from autofill or mobile
-    // keyboards have caused login failures for real users.
     password = body.password.trim();
   } catch {
     return NextResponse.json(
@@ -42,7 +46,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (!safeEquals(password, expected)) {
+  // Try Motive master password first.
+  let scope: Scope | null = null;
+  let redirectTo: string = "/";
+  const motive = getMotivePassword();
+  if (motive && safeEquals(password, motive)) {
+    scope = { kind: "motive" };
+    redirectTo = "/";
+  } else {
+    // Try each client password.
+    const matchedSlug = findEngagementByPassword(password);
+    if (matchedSlug) {
+      scope = { kind: "client", slug: matchedSlug };
+      redirectTo = `/${matchedSlug}`;
+    }
+  }
+
+  if (!scope) {
+    // Constant-time-ish delay regardless of which comparison failed.
     await new Promise((r) => setTimeout(r, 400));
     return NextResponse.json(
       { ok: false, error: "Wrong password" },
@@ -50,8 +71,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const token = await signSession(expected);
-  const res = NextResponse.json({ ok: true });
+  const token = await signSession(scope, secret);
+  // Respect ?next= only if it targets a path this scope is allowed to reach.
+  const nextParam = req.nextUrl.searchParams.get("next");
+  if (nextParam && nextParam.startsWith("/")) {
+    if (scope.kind === "motive") {
+      redirectTo = nextParam;
+    } else if (
+      nextParam === `/${scope.slug}` ||
+      nextParam.startsWith(`/${scope.slug}/`) ||
+      nextParam === "/program" ||
+      nextParam.startsWith("/program")
+    ) {
+      redirectTo = nextParam;
+    }
+  }
+
+  const res = NextResponse.json({ ok: true, redirectTo });
   res.cookies.set({
     name: SESSION_COOKIE,
     value: token,

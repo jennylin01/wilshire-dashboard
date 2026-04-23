@@ -1,17 +1,6 @@
 import { Client } from "@notionhq/client";
 import { unstable_cache } from "next/cache";
-
-// Data source IDs from BRIEF.md
-export const DATA_SOURCES = {
-  tasks: "cc5a7172-0133-419f-b1d2-3587e804ee6b",
-  raid: "3c657330-bcb7-4933-abc2-eca38274b7b4",
-  commitments: "57e9fb3b-e3dd-40f0-bb47-9e29b10aef80",
-  valueTracking: "46977b20-a8cd-4a8c-bd28-fbceaf6becbd",
-  meetings: "8ab0d80e-7a93-42fb-ac36-164dc002824d",
-  invoices: "c60f4f90-ad21-474d-8b42-09270ae3214a",
-  weeklyDelta: "93849d6f-33da-4b19-a8ff-ca026ed210e6",
-  weeklyDeltaChanges: "ffe39e59-6ffb-48cf-b41a-ce4387ada811",
-} as const;
+import { getEngagement } from "@/lib/engagements";
 
 export const NOTION_TAG = "notion";
 
@@ -25,13 +14,11 @@ function client(): Client {
   return new Client({ auth: token });
 }
 
-// Paginate through every page in a data source.
 async function queryAll(dataSourceId: string): Promise<unknown[]> {
   const c = client();
   const out: unknown[] = [];
   let cursor: string | undefined;
   for (let i = 0; i < 20; i++) {
-    // safety cap
     const res = await c.dataSources.query({
       data_source_id: dataSourceId,
       start_cursor: cursor,
@@ -44,24 +31,49 @@ async function queryAll(dataSourceId: string): Promise<unknown[]> {
   return out;
 }
 
-const cachedQuery = (dataSourceId: string, key: string) =>
-  unstable_cache(
+// One cached accessor per (engagement slug, DB kind). Keyed so different
+// engagements don't share cache entries.
+function cachedQuery(
+  slug: string,
+  kind: string,
+  dataSourceId: string
+): () => Promise<unknown[]> {
+  return unstable_cache(
     async () => queryAll(dataSourceId),
-    ["notion", key, dataSourceId],
+    ["notion", slug, kind, dataSourceId],
     { revalidate: 60, tags: [NOTION_TAG] }
   );
+}
 
-export const fetchTasks = () => cachedQuery(DATA_SOURCES.tasks, "tasks")();
-export const fetchRaid = () => cachedQuery(DATA_SOURCES.raid, "raid")();
-export const fetchCommitments = () =>
-  cachedQuery(DATA_SOURCES.commitments, "commitments")();
-export const fetchValueTracking = () =>
-  cachedQuery(DATA_SOURCES.valueTracking, "valueTracking")();
-export const fetchMeetings = () =>
-  cachedQuery(DATA_SOURCES.meetings, "meetings")();
-export const fetchInvoices = () =>
-  cachedQuery(DATA_SOURCES.invoices, "invoices")();
-export const fetchWeeklyDelta = () =>
-  cachedQuery(DATA_SOURCES.weeklyDelta, "weeklyDelta")();
-export const fetchWeeklyDeltaChanges = () =>
-  cachedQuery(DATA_SOURCES.weeklyDeltaChanges, "weeklyDeltaChanges")();
+export interface EngagementFetchers {
+  fetchTasks: () => Promise<unknown[]>;
+  fetchRaid: () => Promise<unknown[]>;
+  fetchCommitments: () => Promise<unknown[]>;
+  fetchValueTracking: () => Promise<unknown[]>;
+  fetchMeetings: () => Promise<unknown[]>;
+  fetchInvoices: () => Promise<unknown[]>;
+  fetchWeeklyDelta: () => Promise<unknown[]>;
+  fetchWeeklyDeltaChanges: () => Promise<unknown[]>;
+}
+
+export function fetchersForEngagement(
+  slug: string
+): EngagementFetchers | null {
+  const e = getEngagement(slug);
+  if (!e) return null;
+  const n = e.notion;
+  return {
+    fetchTasks: cachedQuery(slug, "tasks", n.tasks),
+    fetchRaid: cachedQuery(slug, "raid", n.raid),
+    fetchCommitments: cachedQuery(slug, "commitments", n.commitments),
+    fetchValueTracking: cachedQuery(slug, "valueTracking", n.valueTracking),
+    fetchMeetings: cachedQuery(slug, "meetings", n.meetings),
+    fetchInvoices: cachedQuery(slug, "invoices", n.invoices),
+    fetchWeeklyDelta: cachedQuery(slug, "weeklyDelta", n.weeklyDelta),
+    fetchWeeklyDeltaChanges: cachedQuery(
+      slug,
+      "weeklyDeltaChanges",
+      n.weeklyDeltaChanges
+    ),
+  };
+}

@@ -1,15 +1,14 @@
 "use client";
 
-import { Briefcase, LineChart, LogOut, Receipt, Users } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { fontStack, monoStack } from "@/lib/theme";
-import type { DashboardData } from "@/lib/types";
-import { DemoTile } from "./DemoTile";
+import type { HubEntry } from "@/app/page";
 import { ProgramTile } from "./ProgramTile";
 
-export function Hub({ data }: { data: DashboardData }) {
+export function Hub({ entries }: { entries: HubEntry[] }) {
   const { theme } = useTheme();
   const router = useRouter();
 
@@ -17,6 +16,13 @@ export function Hub({ data }: { data: DashboardData }) {
     await fetch("/api/logout", { method: "POST" });
     router.replace("/login");
   };
+
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
   return (
     <div
@@ -63,7 +69,7 @@ export function Hub({ data }: { data: DashboardData }) {
               color: theme.muted,
             }}
           >
-            Engagement hub
+            Delivery — all engagements
           </div>
         </div>
 
@@ -75,7 +81,7 @@ export function Hub({ data }: { data: DashboardData }) {
               color: theme.muted,
             }}
           >
-            {data.programme.today}
+            {today}
           </div>
           <ThemeToggle />
           <button
@@ -122,7 +128,7 @@ export function Hub({ data }: { data: DashboardData }) {
               marginBottom: "8px",
             }}
           >
-            Choose a programme
+            Engagement portfolio
           </div>
           <h1
             style={{
@@ -135,7 +141,7 @@ export function Hub({ data }: { data: DashboardData }) {
               color: theme.ink,
             }}
           >
-            Motive Create &mdash; engagement portfolio
+            Motive Create — Delivery
           </h1>
           <p
             style={{
@@ -147,52 +153,54 @@ export function Hub({ data }: { data: DashboardData }) {
               maxWidth: "720px",
             }}
           >
-            Open the live program to view engagement health. Additional
-            workstream-level dashboards are in the pipeline.
+            One tile per active engagement. Click through for live health,
+            workstream status, risks, commitments, and milestones.
           </p>
         </div>
 
-        {/* Grid: big tile + 2x2 demo tiles */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1fr)",
-            gap: "20px",
-            alignItems: "stretch",
-          }}
-        >
-          <ProgramTile data={data} />
-
+        {/* Grid of engagement tiles */}
+        {entries.length === 0 ? (
+          <div
+            style={{
+              padding: "40px 28px",
+              border: `1px dashed ${theme.rule}`,
+              borderRadius: "8px",
+              color: theme.muted,
+              fontSize: "14px",
+              textAlign: "center",
+            }}
+          >
+            No engagements configured yet. Add one to{" "}
+            <code
+              style={{
+                fontFamily: monoStack,
+                fontSize: "12px",
+                background: theme.surfaceElevated,
+                padding: "2px 6px",
+                borderRadius: "3px",
+              }}
+            >
+              lib/engagements.ts
+            </code>
+            .
+          </div>
+        ) : (
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gridTemplateRows: "1fr 1fr",
-              gap: "16px",
+              gridTemplateColumns:
+                entries.length === 1
+                  ? "minmax(0, 720px)"
+                  : "repeat(auto-fill, minmax(420px, 1fr))",
+              gap: "20px",
+              alignItems: "stretch",
             }}
           >
-            <DemoTile
-              title="Finance & Accounting"
-              suffix="(AP Demo)"
-              Icon={Receipt}
-            />
-            <DemoTile
-              title="Sales & Account Management"
-              suffix="(Demo)"
-              Icon={LineChart}
-            />
-            <DemoTile
-              title="Private Market"
-              suffix="(Demo)"
-              Icon={Briefcase}
-            />
-            <DemoTile
-              title="Client Services"
-              suffix="(Demo)"
-              Icon={Users}
-            />
+            {entries.map((e) => (
+              <ProgramTile key={e.slug} entry={e} />
+            ))}
           </div>
-        </div>
+        )}
       </div>
 
       {/* FOOTER */}
@@ -207,7 +215,7 @@ export function Hub({ data }: { data: DashboardData }) {
           justifyContent: "space-between",
         }}
       >
-        <div>Motive Create &times; Wilshire Advisors &middot; 2026</div>
+        <div>Motive Create · Delivery · 2026</div>
         <div>Confidential</div>
       </div>
     </div>

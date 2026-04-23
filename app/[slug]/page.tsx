@@ -1,13 +1,26 @@
+import { notFound } from "next/navigation";
 import { Dashboard } from "@/components/dashboard/Dashboard";
+import { ENGAGEMENT_SLUGS, getEngagement } from "@/lib/engagements";
 import { loadDashboardData } from "@/lib/load-data";
-import type { DashboardData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function ProgramDashboardPage() {
-  let data: DashboardData;
+// Pre-generate static params for every known engagement. Unknown slugs fall
+// through to notFound() at request time.
+export function generateStaticParams() {
+  return ENGAGEMENT_SLUGS.map((slug) => ({ slug }));
+}
+
+export default async function EngagementDashboardPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  if (!getEngagement(params.slug)) notFound();
+
+  let data;
   try {
-    data = await loadDashboardData();
+    data = await loadDashboardData(params.slug);
   } catch (err) {
     return (
       <div
@@ -34,8 +47,8 @@ export default async function ProgramDashboardPage() {
           >
             NOTION_TOKEN
           </code>{" "}
-          is set and that the integration has access to the Wilshire root
-          page.
+          is set and that the integration has access to this engagement&apos;s
+          databases.
         </p>
         <pre
           style={{
@@ -52,5 +65,6 @@ export default async function ProgramDashboardPage() {
     );
   }
 
+  if (!data) notFound();
   return <Dashboard data={data} />;
 }

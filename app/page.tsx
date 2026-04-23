@@ -1,56 +1,32 @@
 import { Hub } from "@/components/hub/Hub";
+import { listEngagements } from "@/lib/engagements";
 import { loadDashboardData } from "@/lib/load-data";
 import type { DashboardData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function HubPage() {
-  let data: DashboardData;
-  try {
-    data = await loadDashboardData();
-  } catch (err) {
-    return (
-      <div
-        style={{
-          fontFamily: "system-ui, sans-serif",
-          padding: "40px",
-          maxWidth: "800px",
-          margin: "0 auto",
-          color: "#0a0a0a",
-        }}
-      >
-        <h1 style={{ fontSize: "24px", marginBottom: "12px" }}>
-          Can&apos;t reach Notion
-        </h1>
-        <p style={{ color: "#737373", marginBottom: "16px" }}>
-          The hub couldn&apos;t load data from the Notion workspace. Check
-          that{" "}
-          <code
-            style={{
-              background: "#f5f5f5",
-              padding: "2px 6px",
-              borderRadius: "3px",
-            }}
-          >
-            NOTION_TOKEN
-          </code>{" "}
-          is set and that the integration has access to the Wilshire root
-          page.
-        </p>
-        <pre
-          style={{
-            background: "#f5f5f5",
-            padding: "12px",
-            borderRadius: "4px",
-            fontSize: "12px",
-            overflow: "auto",
-          }}
-        >
-          {String((err as Error)?.message ?? err)}
-        </pre>
-      </div>
-    );
-  }
+export interface HubEntry {
+  slug: string;
+  data: DashboardData | null;
+  error: string | null;
+}
 
-  return <Hub data={data} />;
+export default async function MasterHubPage() {
+  const engagements = listEngagements();
+  const entries: HubEntry[] = await Promise.all(
+    engagements.map(async (e) => {
+      try {
+        const data = await loadDashboardData(e.slug);
+        return { slug: e.slug, data, error: data ? null : "Missing data" };
+      } catch (err) {
+        return {
+          slug: e.slug,
+          data: null,
+          error: (err as Error)?.message ?? String(err),
+        };
+      }
+    })
+  );
+
+  return <Hub entries={entries} />;
 }

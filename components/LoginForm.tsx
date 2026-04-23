@@ -9,15 +9,17 @@ export function LoginForm() {
   const { theme, mode, toggle } = useTheme();
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("next") || "/";
+  const next = params.get("next") || "";
 
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const reason = params.get("reason");
   const initialBanner =
     reason === "invalid-session"
-      ? "Your session was rejected by the server. This usually means the dashboard password was changed. Sign in again."
-      : null;
+      ? "Your session was rejected by the server. Sign in again."
+      : reason === "forbidden"
+        ? "Your account doesn't have access to that page. Sign in with the right password."
+        : null;
   const [error, setError] = useState<string | null>(initialBanner);
 
   const onSubmit = async (e: FormEvent) => {
@@ -26,16 +28,20 @@ export function LoginForm() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch("/api/login", {
+      // Forward ?next= to the login API so it can validate the scope match.
+      const url = next ? `/api/login?next=${encodeURIComponent(next)}` : "/api/login";
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
       if (res.ok) {
-        // Hard navigation: bypasses any Next.js client-router quirks on the
-        // just-set session cookie. The browser reloads, middleware sees the
-        // cookie, user lands on the hub. Bulletproof.
-        const dest = next.startsWith("/") ? next : "/";
+        const body = (await res.json().catch(() => ({}))) as { redirectTo?: string };
+        // Hard navigation so the browser picks up the fresh session cookie.
+        const dest =
+          body.redirectTo && body.redirectTo.startsWith("/")
+            ? body.redirectTo
+            : "/";
         window.location.href = dest;
         return;
       }
@@ -136,7 +142,7 @@ export function LoginForm() {
               marginBottom: "10px",
             }}
           >
-            Engagement dashboard
+            Motive Create &middot; Delivery
           </div>
           <h1
             style={{
@@ -148,7 +154,7 @@ export function LoginForm() {
               color: theme.ink,
             }}
           >
-            Wilshire &mdash; AI Acceleration
+            Engagement dashboard
           </h1>
           <p
             style={{
@@ -158,7 +164,7 @@ export function LoginForm() {
               lineHeight: 1.5,
             }}
           >
-            Enter the shared password to view the dashboard.
+            Enter your password to view the dashboard.
           </p>
 
           <label
@@ -250,8 +256,8 @@ export function LoginForm() {
               lineHeight: 1.5,
             }}
           >
-            Access is restricted to Motive Create and Wilshire sponsors.
-            Contact the PM for credentials.
+            Access is restricted. Contact your Motive Create PM for
+            credentials.
           </div>
         </form>
       </div>
@@ -268,7 +274,7 @@ export function LoginForm() {
           justifyContent: "space-between",
         }}
       >
-        <div>Motive Create &times; Wilshire Advisors &middot; 2026</div>
+        <div>Motive Create &middot; 2026</div>
         <div>Confidential</div>
       </div>
     </div>

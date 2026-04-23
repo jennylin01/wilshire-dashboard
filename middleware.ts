@@ -1,17 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   SESSION_COOKIE,
-  getDashboardPassword,
-  verifySessionWithReason,
+  getSessionSecret,
+  scopeCanAccessSlug,
+  verifySession,
+  type Scope,
 } from "@/lib/auth";
+import { getEngagement } from "@/lib/engagements";
 
 // Guards every route except:
 //   - /login page and /api/login (so users can actually log in)
 //   - /api/revalidate (refresh button / future webhooks)
+//   - /api/logout
 //   - HEAD / (platform health probes)
+//
+// Redirects /program → /wilshire so the legacy client URL keeps working.
+//
+// Scope checks:
+//   - /               → requires scope = motive
+//   - /<slug>         → requires scope = motive OR client:<slug>
+//   - /<unknown-slug> → 404 (handled by Next.js, not here)
+
+function parsePath(pathname: string): { slug: string | null } {
+  // Strip leading slash and take first segment.
+  const seg = pathname.replace(/^\/+/, "").split("/")[0];
+  if (!seg) return { slug: null };
+  if (getEngagement(seg)) return { slug: seg };
+  return { slug: null };
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Legacy alias: /program → /wilshire (preserves client bookmarks).
+  if (pathname === "/program" || pathname.startsWith("/program/")) {
+    const url = req.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/program/, "/wilshire");
+    return NextResponse.redirect(url, 308);
+  }
 
   if (
     pathname.startsWith("/login") ||
@@ -26,20 +52,40 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const expected = getDashboardPassword();
-  if (!expected) {
+  const secret = getSessionSecret();
+  if (!secret) {
     return new NextResponse(
-      "Service misconfigured: DASHBOARD_PASSWORD is not set.",
+      "Service misconfigured: SESSION_SECRET (or DASHBOARD_PASSWORD) is not set.",
       { status: 503 }
     );
   }
 
   const cookie = req.cookies.get(SESSION_COOKIE)?.value;
-  let reason: "no-cookie" | "invalid-session" = "no-cookie";
+  let scope: Scope | null = null;
+  let reason: "no-cookie" | "invalid-session" | "forbidden" = "no-cookie";
+
   if (cookie) {
-    const result = await verifySessionWithReason(cookie, expected);
-    if (result.ok) return NextResponse.next();
-    reason = "invalid-session";
+    const result = await verifySession(cookie, secret);
+    if (result.ok && result.scope) {
+      scope = result.scope;
+    } else {
+      reason = "invalid-session";
+    }
+  }
+
+  if (scope) {
+    // Enforce scope rules.
+    const { slug } = parsePath(pathname);
+    if (pathname === "/") {
+      if (scope.kind === "motive") return NextResponse.next();
+      reason = "forbidden";
+    } else if (slug) {
+      if (scopeCanAccessSlug(scope, slug)) return NextResponse.next();
+      reason = "forbidden";
+    } else {
+      // Unknown path (e.g. /some-undefined-slug). Let Next.js handle (404).
+      return NextResponse.next();
+    }
   }
 
   const url = req.nextUrl.clone();
@@ -51,9 +97,7 @@ export async function middleware(req: NextRequest) {
   }
   url.searchParams.set("reason", reason);
   const response = NextResponse.redirect(url);
-  // If the cookie was present but invalid, actively delete it so the next
-  // login isn't polluted by a cookie from a previous deploy / password.
-  if (reason === "invalid-session") {
+  if (reason === "invalid-session" || reason === "forbidden") {
     response.cookies.set({
       name: SESSION_COOKIE,
       value: "",

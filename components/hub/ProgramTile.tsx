@@ -4,11 +4,73 @@ import { ArrowUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
 import { fontStack, monoStack, ragColor } from "@/lib/theme";
-import type { DashboardData, RAG } from "@/lib/types";
+import type { HubEntry } from "@/app/page";
+import type { RAG } from "@/lib/types";
 
-export function ProgramTile({ data }: { data: DashboardData }) {
+export function ProgramTile({ entry }: { entry: HubEntry }) {
   const { theme } = useTheme();
   const router = useRouter();
+  const { slug, data, error } = entry;
+  const href = `/${slug}`;
+
+  const title = data?.programme.name ?? slug;
+
+  // Error / missing-data state keeps the tile visible so the user still sees
+  // the engagement on the hub — just with an explanation instead of KPIs.
+  if (!data) {
+    return (
+      <div
+        onClick={() => router.push(href)}
+        role="link"
+        tabIndex={0}
+        style={{
+          background: theme.surface,
+          border: `1px solid ${theme.rule}`,
+          borderRadius: "8px",
+          padding: "22px 26px",
+          cursor: "pointer",
+          display: "flex",
+          flexDirection: "column",
+          gap: "14px",
+          minHeight: "200px",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: monoStack,
+            fontSize: "11px",
+            color: theme.amber,
+            fontWeight: 700,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+          }}
+        >
+          Engagement · Data unavailable
+        </div>
+        <h2
+          style={{
+            fontFamily: fontStack,
+            fontSize: "22px",
+            fontWeight: 700,
+            margin: 0,
+            color: theme.ink,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          {title}
+        </h2>
+        <div
+          style={{
+            fontSize: "13px",
+            color: theme.muted,
+            lineHeight: 1.5,
+          }}
+        >
+          Couldn&apos;t load Notion data. {error ?? "Check NOTION_TOKEN and DB access."}
+        </div>
+      </div>
+    );
+  }
 
   const ragOrder: Record<RAG, number> = { green: 0, amber: 1, red: 2 };
   const overall = data.workstreams
@@ -29,13 +91,13 @@ export function ProgramTile({ data }: { data: DashboardData }) {
 
   return (
     <div
-      onClick={() => router.push("/program")}
+      onClick={() => router.push(href)}
       role="link"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          router.push("/program");
+          router.push(href);
         }
       }}
       style={{
@@ -105,7 +167,7 @@ export function ProgramTile({ data }: { data: DashboardData }) {
         </h2>
       </div>
 
-      {/* Inline meta row (replaces two separate timeline/fee sections) */}
+      {/* Inline meta row */}
       <div
         style={{
           display: "flex",
@@ -206,7 +268,7 @@ export function ProgramTile({ data }: { data: DashboardData }) {
             letterSpacing: "-0.005em",
           }}
         >
-          Open program dashboard
+          Open engagement dashboard
           <ArrowUpRight size={14} />
         </div>
       </div>
