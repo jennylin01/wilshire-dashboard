@@ -18,6 +18,7 @@ import { DecisionsPanel } from "./DecisionsPanel";
 import { CommitmentsSummary } from "./CommitmentsSummary";
 import { ValueTrackingSummary } from "./ValueTrackingSummary";
 import { WorkstreamDetail } from "./details/WorkstreamDetail";
+import { AgentDetail } from "./details/AgentDetail";
 import { RiskDetail } from "./details/RiskDetail";
 import { RisksDetail } from "./details/RisksDetail";
 import { CommitmentsDetail } from "./details/CommitmentsDetail";
@@ -30,6 +31,7 @@ import type { DashboardData, WorkstreamId } from "@/lib/types";
 
 export type DetailRef =
   | { type: "workstream"; id: WorkstreamId }
+  | { type: "agent"; name: string }
   | { type: "risk"; id: string }
   | { type: "risks" }
   | { type: "commitment" }
@@ -67,6 +69,17 @@ export function Dashboard({ data }: { data: DashboardData }) {
           ws={ws}
           risks={data.risks}
           metrics={data.valueMetrics}
+          tasks={data.tasks}
+          notionUrl={data.programme.notionUrl}
+          onClose={close}
+          onOpenAgent={(name) => setDetail({ type: "agent", name })}
+        />
+      );
+    }
+    if (detail.type === "agent") {
+      return (
+        <AgentDetail
+          agentName={detail.name}
           tasks={data.tasks}
           notionUrl={data.programme.notionUrl}
           onClose={close}

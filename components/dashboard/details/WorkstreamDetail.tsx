@@ -32,6 +32,7 @@ export function WorkstreamDetail({
   tasks,
   notionUrl,
   onClose,
+  onOpenAgent,
 }: {
   ws: Workstream;
   risks: Risk[];
@@ -39,6 +40,7 @@ export function WorkstreamDetail({
   tasks: Task[];
   notionUrl: string;
   onClose: () => void;
+  onOpenAgent?: (agentName: string) => void;
 }) {
   const { theme } = useTheme();
 
@@ -211,100 +213,117 @@ export function WorkstreamDetail({
 
       {hasAgentBreakdown && (
         <>
-          <SectionHeader
-            label={`Agents (${subKeys.length})`}
-          />
-          <div style={{ marginBottom: "28px" }}>
-            {subKeys.map((sub) => {
+          <SectionHeader label={`Agents (${subKeys.length})`} />
+          <div
+            style={{
+              marginBottom: "28px",
+              background: theme.surface,
+              border: `1px solid ${theme.rule}`,
+              borderRadius: "4px",
+              overflow: "hidden",
+            }}
+          >
+            {subKeys.map((sub, i) => {
               const subTasks = grouped.get(sub)!;
+              const firstTask = subTasks[0];
+              const dominantStatus = subTasks.some((t) =>
+                t.status.toLowerCase().includes("block")
+              )
+                ? "Blocked"
+                : subTasks.every((t) =>
+                      ["done", "complete"].some((s) =>
+                        t.status.toLowerCase().includes(s)
+                      )
+                    ) && subTasks.length > 0
+                  ? "Done"
+                  : subTasks.some((t) =>
+                        t.status.toLowerCase().includes("progress")
+                      )
+                    ? "In Progress"
+                    : "To Do";
+              const isStretch = subTasks.some((t) => t.scope === "Stretch");
               return (
                 <div
                   key={sub}
+                  role={onOpenAgent ? "button" : undefined}
+                  tabIndex={onOpenAgent ? 0 : undefined}
+                  onClick={onOpenAgent ? () => onOpenAgent(sub) : undefined}
+                  onKeyDown={
+                    onOpenAgent
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            onOpenAgent(sub);
+                          }
+                        }
+                      : undefined
+                  }
                   style={{
-                    padding: "12px 14px",
-                    marginBottom: "8px",
-                    background: theme.surface,
-                    border: `1px solid ${theme.rule}`,
-                    borderRadius: "4px",
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto auto auto",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "12px 16px",
+                    borderBottom:
+                      i < subKeys.length - 1
+                        ? `1px solid ${theme.ruleSoft}`
+                        : "none",
+                    cursor: onOpenAgent ? "pointer" : "default",
+                    transition: "background 0.12s",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (onOpenAgent)
+                      e.currentTarget.style.background = theme.surfaceHover;
+                  }}
+                  onMouseLeave={(e) => {
+                    if (onOpenAgent)
+                      e.currentTarget.style.background = theme.surface;
                   }}
                 >
                   <div
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: "12px",
-                      marginBottom: subTasks.length > 1 ? "8px" : 0,
+                      fontFamily: fontStack,
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      color: theme.ink,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    <div
-                      style={{
-                        fontFamily: fontStack,
-                        fontSize: "15px",
-                        fontWeight: 600,
-                        color: theme.ink,
-                      }}
-                    >
-                      {sub}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "6px",
-                        alignItems: "center",
-                      }}
-                    >
-                      {subTasks.some((t) => t.scope === "Stretch") && (
-                        <Pill
-                          label="Stretch"
-                          color={theme.muted}
-                          bg={theme.surfaceElevated}
-                        />
-                      )}
-                    </div>
+                    {sub}
                   </div>
-                  {subTasks.map((t) => (
-                    <div
-                      key={t.id}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "6px 0",
-                        fontSize: "13px",
-                        fontFamily: monoStack,
-                        color: theme.muted,
-                        gap: "12px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          flex: 1,
-                          minWidth: 0,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {t.title}
-                      </div>
-                      <div style={{ flexShrink: 0, fontSize: "12px" }}>
-                        {t.week || "—"}
-                      </div>
-                      <div
-                        style={{
-                          flexShrink: 0,
-                          color: statusColor(theme, t.status),
-                          fontWeight: 600,
-                          fontSize: "12px",
-                          minWidth: "88px",
-                          textAlign: "right",
-                        }}
-                      >
-                        {t.status}
-                      </div>
-                    </div>
-                  ))}
+                  <div
+                    style={{
+                      fontFamily: monoStack,
+                      fontSize: "12px",
+                      color: theme.muted,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {firstTask?.week || "—"}
+                  </div>
+                  {isStretch ? (
+                    <Pill
+                      label="Stretch"
+                      color={theme.muted}
+                      bg={theme.surfaceElevated}
+                    />
+                  ) : (
+                    <span />
+                  )}
+                  <div
+                    style={{
+                      fontFamily: monoStack,
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: statusColor(theme, dominantStatus),
+                      minWidth: "90px",
+                      textAlign: "right",
+                    }}
+                  >
+                    {dominantStatus}
+                  </div>
                 </div>
               );
             })}
