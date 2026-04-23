@@ -70,9 +70,9 @@ const MOTIVE_OS: Engagement = {
   programme: {
     name: "Motive OS",
     client: "Motive Labs US, LLC",
-    supplier: "Sideko / Port of Context (Weeks 1-4) + Motive AI Platform (Weeks 6-13)",
-    fee: 50,
-    clientSponsor: "Sarah Cooper (PoC) / Mo Beldo (Activation)",
+    supplier: "Sideko / Port of Context",
+    fee: 150,
+    clientSponsor: "Sarah Cooper (Phase 1) / Mo Beldo (Phase 2)",
     workstreamLead: "Mo Beldo",
     sponsors: ["Ramin Kamfar", "Mo Beldo"],
     start: "Apr 1, 2026",
