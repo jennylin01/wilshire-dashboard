@@ -5,32 +5,64 @@ import { DetailPanel } from "@/components/dashboard/DetailPanel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Pill } from "@/components/ui/Pill";
 import { fontStack, monoStack, ragBg, ragColor } from "@/lib/theme";
-import type { Risk, ValueMetric, Workstream } from "@/lib/types";
+import type { Risk, Task, ValueMetric, Workstream } from "@/lib/types";
+
+function matchesWorkstream(raw: string, matchers: string[]): boolean {
+  const s = (raw || "").toLowerCase();
+  if (!s) return false;
+  return matchers.some((m) => s.includes(m.toLowerCase()));
+}
+
+function statusColor(
+  theme: ReturnType<typeof useTheme>["theme"],
+  status: string
+): string {
+  const s = status.toLowerCase();
+  if (s.includes("done") || s.includes("complete") || s.includes("shipped"))
+    return theme.green;
+  if (s.includes("progress")) return theme.accent;
+  if (s.includes("block")) return theme.red;
+  return theme.muted;
+}
 
 export function WorkstreamDetail({
   ws,
   risks,
   metrics,
+  tasks,
   notionUrl,
   onClose,
 }: {
   ws: Workstream;
   risks: Risk[];
   metrics: ValueMetric[];
+  tasks: Task[];
   notionUrl: string;
   onClose: () => void;
 }) {
   const { theme } = useTheme();
 
-  const wsRisks = risks.filter((r) => {
-    const s = (r.ws || "").toLowerCase();
-    if (ws.id === "fa") return s.includes("f&a") || s.includes("finance");
-    if (ws.id === "srm") return s.includes("s&rm") || s.includes("sales");
-    if (ws.id === "pm") return s.includes("pm") || s.includes("investment") || s.includes("private");
-    if (ws.id === "gov") return s.includes("gov");
-    return false;
-  });
+  const wsRisks = risks.filter((r) => matchesWorkstream(r.ws, ws.matchers));
   const wsMetrics = metrics.filter((v) => v.ws === ws.short);
+  const wsTasks = tasks.filter((t) =>
+    matchesWorkstream(t.workstream, ws.matchers)
+  );
+
+  // Group tasks by Sub-workstream. Tasks with no Sub-workstream land under
+  // a bucket keyed by empty string, which we render last as "Other / general".
+  const grouped = new Map<string, Task[]>();
+  for (const t of wsTasks) {
+    const key = t.subWorkstream || "";
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(t);
+  }
+  const subKeys = Array.from(grouped.keys())
+    .filter((k) => k !== "")
+    .sort();
+  const otherTasks = grouped.get("") ?? [];
+
+  // Show agent breakdown only if at least one task has a Sub-workstream.
+  const hasAgentBreakdown = subKeys.length > 0;
 
   return (
     <DetailPanel
@@ -177,26 +209,190 @@ export function WorkstreamDetail({
         ))}
       </div>
 
-      <SectionHeader label="Milestones" />
-      <div style={{ marginBottom: "28px" }}>
-        {ws.milestones.map((m, i) => (
-          <div
-            key={i}
-            style={{
-              padding: "10px 0",
-              fontFamily: fontStack,
-              fontSize: "15px",
-              color: theme.ink,
-              borderBottom:
-                i < ws.milestones.length - 1
-                  ? `1px solid ${theme.ruleSoft}`
-                  : "none",
-            }}
-          >
-            {m}
+      {hasAgentBreakdown && (
+        <>
+          <SectionHeader
+            label={`Agents (${subKeys.length})`}
+          />
+          <div style={{ marginBottom: "28px" }}>
+            {subKeys.map((sub) => {
+              const subTasks = grouped.get(sub)!;
+              return (
+                <div
+                  key={sub}
+                  style={{
+                    padding: "12px 14px",
+                    marginBottom: "8px",
+                    background: theme.surface,
+                    border: `1px solid ${theme.rule}`,
+                    borderRadius: "4px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: "12px",
+                      marginBottom: subTasks.length > 1 ? "8px" : 0,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: fontStack,
+                        fontSize: "15px",
+                        fontWeight: 600,
+                        color: theme.ink,
+                      }}
+                    >
+                      {sub}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "6px",
+                        alignItems: "center",
+                      }}
+                    >
+                      {subTasks.some((t) => t.scope === "Stretch") && (
+                        <Pill
+                          label="Stretch"
+                          color={theme.muted}
+                          bg={theme.surfaceElevated}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  {subTasks.map((t) => (
+                    <div
+                      key={t.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "6px 0",
+                        fontSize: "13px",
+                        fontFamily: monoStack,
+                        color: theme.muted,
+                        gap: "12px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {t.title}
+                      </div>
+                      <div style={{ flexShrink: 0, fontSize: "12px" }}>
+                        {t.week || "—"}
+                      </div>
+                      <div
+                        style={{
+                          flexShrink: 0,
+                          color: statusColor(theme, t.status),
+                          fontWeight: 600,
+                          fontSize: "12px",
+                          minWidth: "88px",
+                          textAlign: "right",
+                        }}
+                      >
+                        {t.status}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
           </div>
-        ))}
-      </div>
+        </>
+      )}
+
+      {ws.milestones.length > 0 && (
+        <>
+          <SectionHeader label="Milestones" />
+          <div style={{ marginBottom: "28px" }}>
+            {ws.milestones.map((m, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "10px 0",
+                  fontFamily: fontStack,
+                  fontSize: "15px",
+                  color: theme.ink,
+                  borderBottom:
+                    i < ws.milestones.length - 1
+                      ? `1px solid ${theme.ruleSoft}`
+                      : "none",
+                }}
+              >
+                {m}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {otherTasks.length > 0 && (
+        <>
+          <SectionHeader
+            label={hasAgentBreakdown ? "Other tasks" : `Tasks (${otherTasks.length})`}
+          />
+          <div style={{ marginBottom: "28px" }}>
+            {otherTasks.map((t) => (
+              <div
+                key={t.id}
+                style={{
+                  padding: "10px 0",
+                  borderBottom: `1px solid ${theme.ruleSoft}`,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "12px",
+                }}
+              >
+                <div
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    fontSize: "14px",
+                    color: theme.ink,
+                  }}
+                >
+                  {t.title}
+                </div>
+                <div
+                  style={{
+                    flexShrink: 0,
+                    fontFamily: monoStack,
+                    fontSize: "12px",
+                    color: theme.muted,
+                  }}
+                >
+                  {t.week || "—"}
+                </div>
+                <div
+                  style={{
+                    flexShrink: 0,
+                    fontFamily: monoStack,
+                    color: statusColor(theme, t.status),
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    minWidth: "88px",
+                    textAlign: "right",
+                  }}
+                >
+                  {t.status}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {wsRisks.length > 0 && (
         <>

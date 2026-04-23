@@ -18,6 +18,24 @@ export interface Workstream {
   blocked: number;
   thesis: string;
   milestones: string[];
+  // Lowercase substrings used to classify Notion rows into this workstream
+  // (see mapWorkstreams / mapRisks / mapValueMetrics).
+  matchers: string[];
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  workstream: string;       // raw Notion select value
+  subWorkstream: string;    // raw; empty string if not set
+  week: string;             // raw Notion select, e.g. "Week 6 — May 6-12"
+  phase: string;
+  status: string;           // To Do / In Progress / Done / Blocked
+  rag: string;
+  scope: string;            // "In scope" | "Stretch"
+  owner: string;
+  milestone: string;
+  notes: string;
 }
 
 export interface Risk {
@@ -124,5 +142,6 @@ export interface DashboardData {
   decisions: Decision[];
   commitments: Commitment[];
   valueMetrics: ValueMetric[];
+  tasks: Task[];
   lastSync: string;
 }

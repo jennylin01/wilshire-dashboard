@@ -67,6 +67,7 @@ export function Dashboard({ data }: { data: DashboardData }) {
           ws={ws}
           risks={data.risks}
           metrics={data.valueMetrics}
+          tasks={data.tasks}
           notionUrl={data.programme.notionUrl}
           onClose={close}
         />

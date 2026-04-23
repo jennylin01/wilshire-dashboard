@@ -7,6 +7,7 @@ import type {
   MilestoneStatus,
   RAG,
   Risk,
+  Task,
   ValueMetric,
   WeeklyDelta,
   Workstream,
@@ -121,6 +122,7 @@ export function mapWorkstreams(
       sponsor: def.sponsor,
       thesis: def.thesis,
       milestones: def.milestones,
+      matchers: def.matchers,
       rag: "green",
       committed: 0,
       done: 0,
@@ -159,6 +161,33 @@ export function mapWorkstreams(
 
   // Preserve the engagement's declared order.
   return defs.map((d) => acc[d.id]);
+}
+
+// ----- Tasks → flat list (for workstream drill-down) -----
+
+export function mapTasks(rawTasks: unknown[]): Task[] {
+  const out: Task[] = [];
+  for (const page of rawTasks) {
+    const p = page as { id?: string };
+    const props = safeProps(page);
+    const title = readTitle(props["Task"]);
+    if (!title) continue;
+    out.push({
+      id: p.id ?? title,
+      title,
+      workstream: readSelect(props["Workstream"]),
+      subWorkstream: readSelect(props["Sub-workstream"]),
+      week: readSelect(props["Week"]),
+      phase: readSelect(props["Phase"]),
+      status: readSelect(props["Status"]) || "To Do",
+      rag: readSelect(props["RAG"]) || "Green",
+      scope: readSelect(props["Scope"]) || "In scope",
+      owner: readRichText(props["Owner"]),
+      milestone: readRichText(props["Milestone"]),
+      notes: readRichText(props["Notes"]),
+    });
+  }
+  return out;
 }
 
 // ----- RAID → Risks + Decisions -----
