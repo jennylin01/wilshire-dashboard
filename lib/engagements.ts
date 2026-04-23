@@ -1,4 +1,18 @@
-import type { Programme } from "@/lib/types";
+import type { Programme, WorkstreamId } from "@/lib/types";
+
+// Workstream definition for an engagement. `matchers` is a list of
+// lowercase substrings that `mapWorkstreams` uses to classify a Notion
+// Workstream select value into this bucket.
+export interface WorkstreamDef {
+  id: WorkstreamId;
+  name: string;
+  short: string;
+  lead: string;
+  sponsor: string;
+  thesis: string;
+  milestones: string[];
+  matchers: string[];
+}
 
 // Registry of every engagement served by this multi-tenant dashboard.
 // Adding a new engagement:
@@ -24,6 +38,9 @@ export interface Engagement {
   slug: string;
   programme: Programme;
   notion: EngagementNotion;
+  // Workstream definitions for this engagement — shapes the workstream
+  // grid on the dashboard and how Notion Tasks rows are classified.
+  workstreams: WorkstreamDef[];
   // Env var name that holds this engagement's client-side password.
   // During the multi-tenant migration, Wilshire falls back to the legacy
   // DASHBOARD_PASSWORD if CLIENT_PASSWORD_WILSHIRE isn't set — see auth.ts.
@@ -62,6 +79,52 @@ const WILSHIRE: Engagement = {
     weeklyDelta: "93849d6f-33da-4b19-a8ff-ca026ed210e6",
     weeklyDeltaChanges: "ffe39e59-6ffb-48cf-b41a-ce4387ada811",
   },
+  workstreams: [
+    {
+      id: "fa",
+      name: "Finance & accounting",
+      short: "F&A",
+      lead: "Mo Beldo",
+      sponsor: "Christina Walsh",
+      thesis:
+        "AP automation — email routing, doc intelligence, mismatch detection, query auto-response.",
+      milestones: ["M2 (Wk4, $60k)", "M3 (Wk5, $80k)"],
+      matchers: ["f&a", "finance"],
+    },
+    {
+      id: "srm",
+      name: "Sales & revenue management",
+      short: "S&RM",
+      lead: "Mo Beldo",
+      sponsor: "Todd Kessler",
+      thesis:
+        "Salesforce gap report, duplicate resolution, Accordion data mart integration.",
+      milestones: ["M4 (Wk4, $40k)", "M5 (Wk7, $80k)"],
+      matchers: ["s&rm", "sales"],
+    },
+    {
+      id: "pm",
+      name: "E2E investment mgmt — private market",
+      short: "PM",
+      lead: "Mo Beldo",
+      sponsor: "Mark P",
+      thesis:
+        "Workflow reimagination — placeholder milestones pending Mark P sign-off (Apr 22).",
+      milestones: ["M-PM1/2/3 — TBD"],
+      matchers: ["investment mgmt", "private market", "e2e"],
+    },
+    {
+      id: "gov",
+      name: "Governance",
+      short: "GOV",
+      lead: "Motive Create PM",
+      sponsor: "Hanna Valva",
+      thesis:
+        "Mobilisation, governance rhythm, status reporting, change control.",
+      milestones: ["M1 (Wk1, $80k)", "M6 (Wk8, $60k)"],
+      matchers: ["gov"],
+    },
+  ],
   passwordEnv: "CLIENT_PASSWORD_WILSHIRE",
 };
 
@@ -92,6 +155,52 @@ const MOTIVE_OS: Engagement = {
     weeklyDelta: "8270ff0b-3a5e-4abe-9945-29df45d3305d",
     weeklyDeltaChanges: "3270a3e9-9f31-4177-8b25-ac8f59286465",
   },
+  workstreams: [
+    {
+      id: "dp",
+      name: "Data Platform",
+      short: "DP",
+      lead: "Patrick Carney + Elias Posen",
+      sponsor: "Sarah Cooper",
+      thesis:
+        "Ingestion + Postgres + ETL for 4 sources (Box, SharePoint, Affinity, Outlook); Phase 2 platform build (backend, UI, audit, deploy).",
+      milestones: ["M1 (Wk2, $25k)", "M2 (Wk4, $25k)"],
+      matchers: ["data platform", "data-platform"],
+    },
+    {
+      id: "ai",
+      name: "AI Agents",
+      short: "AI",
+      lead: "Patrick Kelly",
+      sponsor: "Mo Beldo",
+      thesis:
+        "Claude Agent SDK + Skills/Flows layer + 21 use-case agents across Network Intelligence, Pulsey, Market Radar services.",
+      milestones: ["M3–M6 (Wks 7/9/11/13, $25k each)"],
+      matchers: ["ai agents", "agents", "ai-agents"],
+    },
+    {
+      id: "ad",
+      name: "Adoption",
+      short: "AD",
+      lead: "Mo Beldo",
+      sponsor: "Mo Beldo",
+      thesis:
+        "Handover from PoC to Motive AI Platform; firm-wide rollout comms; beta cohort; office hours.",
+      milestones: [],
+      matchers: ["adoption"],
+    },
+    {
+      id: "gov",
+      name: "Governance",
+      short: "GOV",
+      lead: "Sarah Cooper / Mo Beldo",
+      sponsor: "Ramin Kamfar",
+      thesis:
+        "Kickoff, sign-offs, working sessions, Blocker Protocol, CO tracking.",
+      milestones: [],
+      matchers: ["governance", "gov"],
+    },
+  ],
   passwordEnv: "CLIENT_PASSWORD_MOTIVE_OS",
 };
 

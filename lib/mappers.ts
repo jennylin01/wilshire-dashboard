@@ -1,3 +1,4 @@
+import type { WorkstreamDef } from "./engagements";
 import type {
   Commitment,
   Decision,
@@ -65,67 +66,29 @@ const safeProps = (page: unknown): Record<string, Prop> => {
 
 // ----- Tasks → Workstreams aggregation -----
 
-// The Workstream select in Tasks uses full names; we map them to the
-// 4 workstream cards that appear on the dashboard.
-const WORKSTREAM_META: Record<
-  WorkstreamId,
-  Pick<Workstream, "id" | "name" | "short" | "lead" | "sponsor" | "thesis" | "milestones">
-> = {
-  fa: {
-    id: "fa",
-    name: "Finance & accounting",
-    short: "F&A",
-    lead: "Mo Beldo",
-    sponsor: "Christina Walsh",
-    thesis:
-      "AP automation — email routing, doc intelligence, mismatch detection, query auto-response.",
-    milestones: ["M2 (Wk4, $60k)", "M3 (Wk5, $80k)"],
-  },
-  srm: {
-    id: "srm",
-    name: "Sales & revenue management",
-    short: "S&RM",
-    lead: "Mo Beldo",
-    sponsor: "Todd Kessler",
-    thesis:
-      "Salesforce gap report, duplicate resolution, Accordion data mart integration.",
-    milestones: ["M4 (Wk4, $40k)", "M5 (Wk7, $80k)"],
-  },
-  pm: {
-    id: "pm",
-    name: "E2E investment mgmt — private market",
-    short: "PM",
-    lead: "Mo Beldo",
-    sponsor: "Mark P",
-    thesis:
-      "Workflow reimagination — placeholder milestones pending Mark P sign-off (Apr 22).",
-    milestones: ["M-PM1/2/3 — TBD"],
-  },
-  gov: {
-    id: "gov",
-    name: "Governance",
-    short: "GOV",
-    lead: "Motive Create PM",
-    sponsor: "Hanna Valva",
-    thesis:
-      "Mobilisation, governance rhythm, status reporting, change control.",
-    milestones: ["M1 (Wk1, $80k)", "M6 (Wk8, $60k)"],
-  },
-};
-
-// Map the raw Workstream select name → our workstream id.
-// Notion values may be the long form ("Finance & accounting") or the short
-// code ("F&A"). Both are accepted.
-const classifyWorkstream = (raw: string): WorkstreamId | null => {
+// Classify a raw Notion Workstream select value into one of the engagement's
+// declared workstream IDs using the `matchers` substrings. Returns null if
+// no matcher hits. Longer matchers win over shorter ones to avoid e.g.
+// "Governance" being misclassified as "gov" when there's a more specific
+// match available.
+function classifyWorkstream(
+  raw: string,
+  defs: WorkstreamDef[]
+): WorkstreamId | null {
   const s = raw.toLowerCase();
   if (!s) return null;
-  if (s.includes("f&a") || s.includes("finance")) return "fa";
-  if (s.includes("s&rm") || s.includes("sales")) return "srm";
-  if (s.includes("pm") || s.includes("investment mgmt") || s.includes("private market"))
-    return "pm";
-  if (s.includes("gov")) return "gov";
-  return null;
-};
+  let best: { id: WorkstreamId; len: number } | null = null;
+  for (const def of defs) {
+    for (const m of def.matchers) {
+      if (s.includes(m.toLowerCase())) {
+        if (!best || m.length > best.len) {
+          best = { id: def.id, len: m.length };
+        }
+      }
+    }
+  }
+  return best?.id ?? null;
+}
 
 const ragFromSelect = (raw: string): RAG | null => {
   const s = raw.toLowerCase();
@@ -142,23 +105,36 @@ const worseRag = (a: RAG | null, b: RAG | null): RAG | null => {
   return order[b] > order[a] ? b : a;
 };
 
-export function mapWorkstreams(rawTasks: unknown[]): Workstream[] {
-  // Seed all 4 workstreams so they appear even if empty.
-  const acc: Record<WorkstreamId, Workstream> = {
-    fa: { ...WORKSTREAM_META.fa, rag: "green", committed: 0, done: 0, inProgress: 0, blocked: 0 },
-    srm: { ...WORKSTREAM_META.srm, rag: "green", committed: 0, done: 0, inProgress: 0, blocked: 0 },
-    pm: { ...WORKSTREAM_META.pm, rag: "green", committed: 0, done: 0, inProgress: 0, blocked: 0 },
-    gov: { ...WORKSTREAM_META.gov, rag: "green", committed: 0, done: 0, inProgress: 0, blocked: 0 },
-  };
-  const worstRag: Record<WorkstreamId, RAG | null> = {
-    fa: null, srm: null, pm: null, gov: null,
-  };
+export function mapWorkstreams(
+  rawTasks: unknown[],
+  defs: WorkstreamDef[]
+): Workstream[] {
+  // Seed one entry per declared workstream so cards appear even if empty.
+  const acc: Record<WorkstreamId, Workstream> = {};
+  const worstRag: Record<WorkstreamId, RAG | null> = {};
+  for (const def of defs) {
+    acc[def.id] = {
+      id: def.id,
+      name: def.name,
+      short: def.short,
+      lead: def.lead,
+      sponsor: def.sponsor,
+      thesis: def.thesis,
+      milestones: def.milestones,
+      rag: "green",
+      committed: 0,
+      done: 0,
+      inProgress: 0,
+      blocked: 0,
+    };
+    worstRag[def.id] = null;
+  }
 
   for (const page of rawTasks) {
     const props = safeProps(page);
     const wsRaw = readSelect(props["Workstream"]);
-    const wsId = classifyWorkstream(wsRaw);
-    if (!wsId) continue;
+    const wsId = classifyWorkstream(wsRaw, defs);
+    if (!wsId || !acc[wsId]) continue;
 
     const status = readSelect(props["Status"]).toLowerCase();
     const rag = ragFromSelect(readSelect(props["RAG"]));
@@ -169,7 +145,7 @@ export function mapWorkstreams(rawTasks: unknown[]): Workstream[] {
     if (status.includes("done") || status.includes("complete")) {
       ws.done += 1;
     } else {
-      // Only count RAG for non-done tasks, per BRIEF spec.
+      // Only count RAG for non-done tasks.
       if (rag) worstRag[wsId] = worseRag(worstRag[wsId], rag);
     }
     if (status.includes("progress")) ws.inProgress += 1;
@@ -177,11 +153,12 @@ export function mapWorkstreams(rawTasks: unknown[]): Workstream[] {
   }
 
   // Apply worst-RAG; default green if none observed.
-  (Object.keys(acc) as WorkstreamId[]).forEach((id) => {
-    acc[id].rag = worstRag[id] ?? "green";
-  });
+  for (const def of defs) {
+    acc[def.id].rag = worstRag[def.id] ?? "green";
+  }
 
-  return [acc.fa, acc.srm, acc.pm, acc.gov];
+  // Preserve the engagement's declared order.
+  return defs.map((d) => acc[d.id]);
 }
 
 // ----- RAID → Risks + Decisions -----
@@ -303,20 +280,34 @@ export function mapCommitments(raw: unknown[]): Commitment[] {
 
 // ----- Value tracking -----
 
-export function mapValueMetrics(raw: unknown[]): ValueMetric[] {
+export function mapValueMetrics(
+  raw: unknown[],
+  defs: WorkstreamDef[]
+): ValueMetric[] {
+  const shortById = new Map(defs.map((d) => [d.id, d.short]));
   const out: ValueMetric[] = [];
   for (const page of raw) {
     const props = safeProps(page);
     const metric = readTitle(props["Metric"]);
     if (!metric) continue;
     const wsRaw = readSelect(props["Workstream"]);
-    const wsId = classifyWorkstream(wsRaw);
-    const short = wsId ? WORKSTREAM_META[wsId].short : wsRaw;
+    const wsId = classifyWorkstream(wsRaw, defs);
+    const short = wsId ? shortById.get(wsId) ?? wsRaw : wsRaw;
+    // Accept either "Baseline (Wk1)" (Wilshire legacy) or "Baseline (start)"
+    // (Motive OS) as the baseline field. Same for Target.
+    const baseline =
+      readRichText(props["Baseline (Wk1)"]) ||
+      readRichText(props["Baseline (start)"]) ||
+      "TBV";
+    const target =
+      readRichText(props["Target (Wk8)"]) ||
+      readRichText(props["Target (end)"]) ||
+      "TBV";
     out.push({
       metric,
       ws: short,
-      baseline: readRichText(props["Baseline (Wk1)"]) || "TBV",
-      target: readRichText(props["Target (Wk8)"]) || "TBV",
+      baseline,
+      target,
       status: readSelect(props["Status"]) || "Not started",
       confidence: readSelect(props["Confidence in claim"]) || "TBV",
     });

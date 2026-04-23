@@ -1,6 +1,9 @@
 export type RAG = "green" | "amber" | "red";
 
-export type WorkstreamId = "fa" | "srm" | "pm" | "gov";
+// Workstream IDs are engagement-specific. Each engagement declares its own
+// set in lib/engagements.ts (e.g. ["fa","srm","pm","gov"] for Wilshire,
+// ["dp","ai","ad","gov"] for Motive OS).
+export type WorkstreamId = string;
 
 export interface Workstream {
   id: WorkstreamId;

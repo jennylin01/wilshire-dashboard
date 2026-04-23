@@ -60,11 +60,11 @@ export async function loadDashboardData(
     weeklyDelta: mapWeeklyDelta(rawWeeks, rawDeltaChanges),
     milestones,
     invoiceTotals,
-    workstreams: mapWorkstreams(rawTasks),
+    workstreams: mapWorkstreams(rawTasks, engagement.workstreams),
     risks: mapRisks(rawRaid),
     decisions: mapDecisions(rawRaid),
     commitments: mapCommitments(rawCommitments),
-    valueMetrics: mapValueMetrics(rawValue),
+    valueMetrics: mapValueMetrics(rawValue, engagement.workstreams),
     lastSync: new Date().toLocaleString("en-US", {
       month: "short",
       day: "numeric",
