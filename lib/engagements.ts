@@ -12,6 +12,8 @@ export interface EngagementNotion {
   raid: string;
   commitments: string;
   valueTracking: string;
+  // meetings DB is currently unused by the dashboard — leave empty string
+  // if a given engagement doesn't have one.
   meetings: string;
   invoices: string;
   weeklyDelta: string;
@@ -63,8 +65,39 @@ const WILSHIRE: Engagement = {
   passwordEnv: "CLIENT_PASSWORD_WILSHIRE",
 };
 
+const MOTIVE_OS: Engagement = {
+  slug: "motive-os",
+  programme: {
+    name: "Motive OS",
+    client: "Motive Labs US, LLC",
+    supplier: "Sideko / Port of Context (Weeks 1-4) + Motive AI Platform (Weeks 6-13)",
+    fee: 50,
+    clientSponsor: "Sarah Cooper (PoC) / Mo Beldo (Activation)",
+    workstreamLead: "Mo Beldo",
+    sponsors: ["Ramin Kamfar", "Mo Beldo"],
+    start: "Apr 1, 2026",
+    end: "Jun 30, 2026",
+    currentWeek: 4,
+    totalWeeks: 13,
+    today: "",
+    notionUrl: "https://www.notion.so/34b5e123a4358174b531ebfacaaab064",
+  },
+  notion: {
+    tasks: "ae548889-e107-4df1-b802-9b4045154b88",
+    raid: "1f8d2791-7c54-485e-b0b8-b7a8b7e3e3d0",
+    commitments: "f127ad4e-3896-4192-bccf-dbdc4bd985fc",
+    valueTracking: "3004f4e8-2896-4b89-9d2c-47657f95b314",
+    meetings: "",
+    invoices: "e0c8a02d-3151-47a5-8ae0-36c3df783a61",
+    weeklyDelta: "8270ff0b-3a5e-4abe-9945-29df45d3305d",
+    weeklyDeltaChanges: "3270a3e9-9f31-4177-8b25-ac8f59286465",
+  },
+  passwordEnv: "CLIENT_PASSWORD_MOTIVE_OS",
+};
+
 export const ENGAGEMENTS: Record<string, Engagement> = {
   wilshire: WILSHIRE,
+  "motive-os": MOTIVE_OS,
 };
 
 export const ENGAGEMENT_SLUGS = Object.keys(ENGAGEMENTS);
