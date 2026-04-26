@@ -33,16 +33,34 @@ async function queryAll(dataSourceId: string): Promise<unknown[]> {
 
 // One cached accessor per (engagement slug, DB kind). Keyed so different
 // engagements don't share cache entries.
+//
+// Failures are swallowed and return []. This keeps the dashboard usable when
+// a single Notion DB is unreachable (integration not shared, DB renamed,
+// transient API error) — the affected section renders empty instead of the
+// whole page 500ing. The error is logged so it stays diagnosable, and we
+// avoid caching the failure so a fix shows up on the next request rather
+// than after the 60s revalidate window.
 function cachedQuery(
   slug: string,
   kind: string,
   dataSourceId: string
 ): () => Promise<unknown[]> {
-  return unstable_cache(
+  const cached = unstable_cache(
     async () => queryAll(dataSourceId),
     ["notion", slug, kind, dataSourceId],
     { revalidate: 60, tags: [NOTION_TAG] }
   );
+  return async () => {
+    try {
+      return await cached();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `[notion] fetch failed for ${slug}/${kind} (${dataSourceId}): ${msg}`
+      );
+      return [];
+    }
+  };
 }
 
 export interface EngagementFetchers {
