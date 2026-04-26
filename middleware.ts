@@ -43,7 +43,8 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/login") ||
     pathname.startsWith("/api/login") ||
     pathname.startsWith("/api/logout") ||
-    pathname.startsWith("/api/revalidate")
+    pathname.startsWith("/api/revalidate") ||
+    pathname.startsWith("/api/diag")
   ) {
     return NextResponse.next();
   }
