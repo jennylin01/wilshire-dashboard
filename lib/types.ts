@@ -107,13 +107,13 @@ export interface InvoiceTotals {
 }
 
 export interface WeeklyDelta {
+  // e.g. "Apr 20–26, 2026" — the human-readable week label from Notion
   weekOf: string;
-  headline: string;
-  changes: {
-    direction: "up" | "down" | "flat";
-    label: string;
-    detail: string;
-  }[];
+  // Auto-derived from Week start (Monday + 4 = Friday), e.g. "24 April 2026"
+  weekEnding: string;
+  summary: string;
+  risks: string;
+  plan: string;
 }
 
 export interface Programme {
