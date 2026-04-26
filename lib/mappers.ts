@@ -435,32 +435,20 @@ const INVOICED_SENT: MilestoneStatus[] = ["Invoice sent", "Paid"];
 // Fallback shown if Notion has no weeks populated.
 const EMPTY_WEEKLY_DELTA: WeeklyDelta = {
   weekOf: "—",
-  weekEnding: "—",
-  summary: "No weekly update yet — add a row to the Weekly delta database in Notion.",
-  risks: "",
-  plan: "",
+  headline: "No weekly update yet — add a row to the Weekly delta database in Notion.",
+  changes: [],
 };
 
-// Derive the week-ending Friday from a Monday (Week start). Returns
-// e.g. "24 April 2026". Falls back to the input ISO string on parse fail.
-function formatWeekEnding(startISO: string | null): string {
-  if (!startISO) return "—";
-  const d = new Date(startISO);
-  if (isNaN(d.getTime())) return startISO;
-  d.setUTCDate(d.getUTCDate() + 4);
-  return d.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  });
+function normalizeDirection(raw: string): "up" | "down" | "flat" {
+  const s = raw.toLowerCase();
+  if (s === "up") return "up";
+  if (s === "down") return "down";
+  return "flat";
 }
 
 export function mapWeeklyDelta(
   rawWeeks: unknown[],
-  // The changes DB is no longer rendered, but we keep the parameter so
-  // load-data.ts callers don't break and Notion data stays intact.
-  _rawChanges: unknown[],
+  rawChanges: unknown[],
   today: Date = new Date()
 ): WeeklyDelta {
   if (!rawWeeks.length) return EMPTY_WEEKLY_DELTA;
@@ -470,10 +458,7 @@ export function mapWeeklyDelta(
   type ParsedWeek = {
     id: string;
     weekOf: string;
-    startISO: string | null;
-    summary: string;
-    risks: string;
-    plan: string;
+    headline: string;
     startMs: number;
   };
   const weeks: ParsedWeek[] = [];
@@ -481,16 +466,14 @@ export function mapWeeklyDelta(
     const p = page as { id?: string };
     const props = safeProps(page);
     const weekOf = readTitle(props["Week of"]);
+    const headline = readRichText(props["Headline"]);
     const startISO = readDate(props["Week start"]);
     if (!weekOf) continue;
     const startMs = startISO ? new Date(startISO).getTime() : NaN;
     weeks.push({
       id: p.id ?? weekOf,
       weekOf,
-      startISO,
-      summary: readRichText(props["Summary status"]),
-      risks: readRichText(props["Key risks issues blockers"]),
-      plan: readRichText(props["Plan for next period"]),
+      headline,
       startMs: isNaN(startMs) ? 0 : startMs,
     });
   }
@@ -502,12 +485,38 @@ export function mapWeeklyDelta(
     .sort((a, b) => b.startMs - a.startMs);
   const chosen = eligible[0] ?? weeks.sort((a, b) => a.startMs - b.startMs)[0];
 
+  // Collect the changes that relate to the chosen week.
+  type ParsedChange = {
+    label: string;
+    detail: string;
+    direction: "up" | "down" | "flat";
+    order: number;
+    weekIds: string[];
+  };
+  const changes: ParsedChange[] = [];
+  for (const page of rawChanges) {
+    const props = safeProps(page);
+    const label = readTitle(props["Change"]);
+    if (!label) continue;
+    const weekIds = readRelation(props["Week"]);
+    changes.push({
+      label,
+      detail: readRichText(props["Detail"]),
+      direction: normalizeDirection(readSelect(props["Direction"])),
+      order: readNumber(props["Order"]) ?? 999,
+      weekIds,
+    });
+  }
+
+  const chosenChanges = changes
+    .filter((c) => c.weekIds.includes(chosen.id))
+    .sort((a, b) => a.order - b.order)
+    .map(({ direction, label, detail }) => ({ direction, label, detail }));
+
   return {
     weekOf: chosen.weekOf,
-    weekEnding: formatWeekEnding(chosen.startISO),
-    summary: chosen.summary,
-    risks: chosen.risks,
-    plan: chosen.plan,
+    headline: chosen.headline || EMPTY_WEEKLY_DELTA.headline,
+    changes: chosenChanges,
   };
 }
 
