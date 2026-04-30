@@ -32,25 +32,27 @@ export async function GET(req: Request) {
 
   const client = new Client({ auth: token });
 
-  type Result = { kind: string; id: string; rows?: number; error?: string };
+  type Result = {
+    kind: string;
+    id: string;
+    rows?: number;
+    lastEdit?: string;
+    error?: string;
+  };
   async function probe(kind: string, id: string): Promise<Result> {
     if (!id) return { kind, id, error: "no id configured" };
     try {
-      const res = await client.dataSources.query({
-        data_source_id: id,
-        page_size: 1,
-      });
-      // page_size=1 still returns has_more if there are more, so do a count
-      // request via a second call without page_size cap. Simpler: re-query
-      // with page_size=100 which is the dashboard's normal first page.
       const full = await client.dataSources.query({
         data_source_id: id,
         page_size: 100,
+        sorts: [{ timestamp: "last_edited_time", direction: "descending" }],
       });
+      const top = full.results[0] as { last_edited_time?: string } | undefined;
       return {
         kind,
         id,
         rows: full.results.length + (full.has_more ? Infinity : 0),
+        lastEdit: top?.last_edited_time,
       };
     } catch (err) {
       return {
