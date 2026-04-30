@@ -50,29 +50,33 @@ export interface Engagement {
 const WILSHIRE: Engagement = {
   slug: "wilshire",
   programme: {
-    name: "Wilshire — AI Acceleration (SOW 6)",
+    name: "Wilshire — AI Acceleration (SOW 7)",
     client: "Wilshire Advisors LLC",
     supplier: "Motive Labs US, LLC",
+    // $200k base; up to $250k contingent ($100k FTE-capacity-release fee +
+    // $150k exit performance bonus) — see Wilshire — AI Acceleration page.
     fee: 200,
-    clientSponsor: "Hanna Valva (CTO)",
+    clientSponsor: "Hannah Valva (CTO)",
     workstreamLead: "Mo Beldo",
     sponsors: [
       "Christina Walsh, CFO",
-      "Gabby Marquez, AP",
-      "Todd Cassler, CRO",
-      "Brian Thomas",
-      "Matt Williams",
+      "Todd Kessler, CRO",
+      "Gabby Marquez (CFO SME — AP Manager)",
+      "Brian Thomas (CRO SME)",
+      "Matt Williams (CRO SME)",
+      "Andrew Dabinett (CRO SME)",
+      "Tamika Peterkin (CRO SME)",
     ],
-    start: "Apr 20, 2026",
-    end: "May 17, 2026",
+    start: "May 4, 2026",
+    end: "Jul 5, 2026",
     currentWeek: 1,
-    totalWeeks: 4,
+    totalWeeks: 9,
     // `today` is re-computed on each render in load-data.ts
     today: "",
     notionUrl: "https://www.notion.so/3485e123a435810ab817edd0326ff7ab",
   },
   notion: {
-    // Tasks DB — new "Tasks — 4-Week Plan" built for SOW 6.
+    // Tasks DB — "Tasks — 8-Week Plan" built for SOW 7.
     tasks: "a7027b53-ecd4-4409-bdc3-7bfe96a70f8f",
     raid: "3c657330-bcb7-4933-abc2-eca38274b7b4",
     commitments: "57e9fb3b-e3dd-40f0-bb47-9e29b10aef80",
@@ -90,31 +94,35 @@ const WILSHIRE: Engagement = {
       lead: "Mo Beldo",
       sponsor: "Christina Walsh",
       thesis:
-        "Invoice extraction MVP on Blaze with Tipalti mismatch flagging + common AP queries PoC with human-in-the-loop. Production-ready by Wk4.",
-      milestones: ["M2 (Wk2, $80k)", "M3 (Wk4, $80k)"],
-      matchers: ["ap automation", "ap", "cfo"],
+        "Invoice extraction + Tipalti mismatch flagging; AP query auto-response with human-in-the-loop; A/B PoC against live AP inbox with measurement harness; FTE capacity release assessment. UAT-deployed by Wk8.",
+      milestones: ["MS1 (Wk0, $40k)", "MS2 (Wk8, $160k)"],
+      // Legacy taxonomy in RAID/Value/Meetings/Invoices DBs uses
+      // "Finance & Accounting" — map to AP since Christina/CFO/AP is the F&A work.
+      matchers: ["ap automation", "ap", "cfo", "finance & accounting"],
     },
     {
       id: "sf",
-      name: "Salesforce Data (CRO)",
+      name: "Salesforce Data Foundation & Agent Prototype (CRO)",
       short: "SF",
       lead: "Mo Beldo",
-      sponsor: "Todd Cassler",
+      sponsor: "Todd Kessler",
       thesis:
-        "Gap report, duplicate resolution, Accordion consolidation analysis, integration framework, Phase 2 engagement engine scoping pack.",
-      milestones: ["M2 (Wk2, $80k)", "M3 (Wk4, $80k)"],
-      matchers: ["salesforce", "sf data", "cro", "sf"],
+        "Data quality remediation (gap report, AI-powered duplicate resolution, upstream workflow design); record keeper data enrichment pipeline (25k+ advisors across 20 record keepers); Salesforce agent prototype integrated with Dakota for actionable alerts. UAT-deployed by Wk8.",
+      milestones: ["MS1 (Wk0, $40k)", "MS2 (Wk8, $160k)"],
+      // Legacy "Sales & Revenue Management" maps here — CRO/SF work.
+      matchers: ["salesforce", "sf data", "cro", "sf", "sales & revenue management"],
     },
     {
       id: "gov",
       name: "Governance",
       short: "GOV",
       lead: "Mo Beldo",
-      sponsor: "Hanna Valva",
+      sponsor: "Hannah Valva",
       thesis:
-        "Mobilisation, governance rhythm, status reporting, change control.",
-      milestones: ["M1 (Wk1, $40k)", "M3 (Wk4, $80k)"],
-      matchers: ["gov"],
+        "Mobilisation, governance rhythm, status reporting, change control. 72-hour blocker SLA on Wilshire-side dependencies.",
+      milestones: ["MS1 (Wk0, $40k)", "MS2 (Wk8, $160k)"],
+      // Legacy "Cross-cutting" rolls into Governance.
+      matchers: ["gov", "cross-cutting"],
     },
   ],
   passwordEnv: "CLIENT_PASSWORD_WILSHIRE",
