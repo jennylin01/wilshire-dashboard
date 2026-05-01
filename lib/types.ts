@@ -111,9 +111,16 @@ export interface WeeklyDelta {
   weekOf: string;
   // Auto-derived from Week start (Monday + 4 = Friday), e.g. "24 April 2026"
   weekEnding: string;
+  // The top-line exec message for the week (Notion: Headline)
+  headline: string;
+  // Engagement week number, 1..N (Notion: Week number)
+  weekNumber: number | null;
   summary: string;
   risks: string;
   plan: string;
+  // Notion page id of the chosen row, when one was selected. Absent in
+  // empty state. Used by the dashboard inline editor to write changes back.
+  pageId?: string;
 }
 
 export interface Programme {

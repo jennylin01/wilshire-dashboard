@@ -436,6 +436,8 @@ const INVOICED_SENT: MilestoneStatus[] = ["Invoice sent", "Paid"];
 const EMPTY_WEEKLY_DELTA: WeeklyDelta = {
   weekOf: "—",
   weekEnding: "—",
+  headline: "",
+  weekNumber: null,
   summary: "No weekly update yet — add a row to the Weekly delta database in Notion.",
   risks: "",
   plan: "",
@@ -471,6 +473,8 @@ export function mapWeeklyDelta(
     id: string;
     weekOf: string;
     startISO: string | null;
+    headline: string;
+    weekNumber: number | null;
     summary: string;
     risks: string;
     plan: string;
@@ -488,6 +492,8 @@ export function mapWeeklyDelta(
       id: p.id ?? weekOf,
       weekOf,
       startISO,
+      headline: readRichText(props["Headline"]),
+      weekNumber: readNumber(props["Week number"]),
       summary: readRichText(props["Summary status"]),
       risks: readRichText(props["Key risks issues blockers"]),
       plan: readRichText(props["Plan for next period"]),
@@ -508,9 +514,12 @@ export function mapWeeklyDelta(
   return {
     weekOf: chosen.weekOf,
     weekEnding: formatWeekEnding(chosen.startISO),
+    headline: chosen.headline,
+    weekNumber: chosen.weekNumber,
     summary: chosen.summary,
     risks: chosen.risks,
     plan: chosen.plan,
+    pageId: chosen.id,
   };
 }
 
