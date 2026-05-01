@@ -14,21 +14,23 @@ export function DecisionsDetail({
   onClose: () => void;
 }) {
   const { theme } = useTheme();
-  const pending = decisions.filter((d) => d.status === "Pending decision").length;
-  const closed = decisions.length - pending;
+  // Closed decisions are hidden from the modal too — they're summarised
+  // as a count instead of cluttering the active list.
+  const visible = decisions.filter((d) => d.status !== "Closed");
+  const closed = decisions.length - visible.length;
   return (
     <DetailPanel
       title="Decisions log"
-      subtitle={`${pending} pending · ${closed} closed`}
+      subtitle={`${visible.length} active · ${closed} closed`}
       onClose={onClose}
     >
-      {decisions.map((d, i) => (
+      {visible.map((d, i) => (
         <div
           key={d.id}
           style={{
             padding: "16px 0",
             borderBottom:
-              i < decisions.length - 1 ? `1px solid ${theme.ruleSoft}` : "none",
+              i < visible.length - 1 ? `1px solid ${theme.ruleSoft}` : "none",
           }}
         >
           <div

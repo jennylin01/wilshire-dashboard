@@ -15,8 +15,11 @@ export function DecisionsPanel({
   onOpen: (d: DetailRef) => void;
 }) {
   const { theme } = useTheme();
-  const pending = decisions.filter((d) => d.status === "Pending decision");
-  const closedCount = decisions.length - pending.length;
+  // Show every decision that isn't Closed. The footer summarises Closed
+  // count separately so the panel gives the full picture without becoming
+  // a wall of resolved items.
+  const visible = decisions.filter((d) => d.status !== "Closed");
+  const closedCount = decisions.length - visible.length;
 
   return (
     <div>
@@ -41,18 +44,18 @@ export function DecisionsPanel({
           e.currentTarget.style.borderColor = theme.rule;
         }}
       >
-        {pending.length === 0 && (
+        {visible.length === 0 && (
           <div style={{ color: theme.muted, fontSize: "15px", padding: "6px 0" }}>
-            No decisions currently pending.
+            No active decisions.
           </div>
         )}
-        {pending.map((d, i) => (
+        {visible.map((d, i) => (
           <div
             key={d.id}
             style={{
               padding: "10px 0",
               borderBottom:
-                i < pending.length - 1 ? `1px solid ${theme.ruleSoft}` : "none",
+                i < visible.length - 1 ? `1px solid ${theme.ruleSoft}` : "none",
             }}
           >
             <div
