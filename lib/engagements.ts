@@ -129,6 +129,10 @@ const WILSHIRE: Engagement = {
       matchers: ["gov", "cross-cutting"],
     },
   ],
+  // Commitments + Value tracking sections suppressed for SOW 7.
+  // The underlying Notion DBs are still fetched (so VitalsStrip counts and
+  // detail modals keep working), but the cards on the main page are hidden.
+  hiddenSections: ["commitments", "valueTracking"],
   passwordEnv: "CLIENT_PASSWORD_WILSHIRE",
 };
 

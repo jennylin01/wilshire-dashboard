@@ -154,10 +154,12 @@ export interface Programme {
 
 // Sections of the dashboard that can be conditionally hidden per engagement.
 // The dashboard always renders Masthead, TimelineBar, VitalsStrip, Workstreams,
-// Risks, Decisions and Commitments. Sections listed below are optional.
+// Risks and Decisions. The sections below are optional and can be hidden
+// per engagement via Engagement.hiddenSections.
 export type DashboardSection =
   | "weeklyDelta"
   | "milestones"
+  | "commitments"
   | "valueTracking";
 
 export interface DashboardData {

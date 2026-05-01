@@ -24,7 +24,7 @@ export function CommitmentsSummary({
 
   return (
     <div>
-      <SectionHeader label="Client commitments · Hanna conversation" />
+      <SectionHeader label="Client commitments" />
       <div
         onClick={() => onOpen({ type: "commitment" })}
         style={{

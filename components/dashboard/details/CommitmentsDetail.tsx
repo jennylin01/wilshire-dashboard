@@ -19,7 +19,7 @@ export function CommitmentsDetail({
   return (
     <DetailPanel
       title="Client commitments"
-      subtitle="Wilshire-owned inputs · Hanna conversation"
+      subtitle="Wilshire-owned inputs"
       notionUrl={notionUrl}
       onClose={onClose}
     >

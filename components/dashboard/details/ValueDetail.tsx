@@ -21,7 +21,7 @@ export function ValueDetail({
   return (
     <DetailPanel
       title="Value tracking"
-      subtitle={`${metrics.length} metrics · SOW §6`}
+      subtitle={`${metrics.length} metrics`}
       notionUrl={notionUrl}
       onClose={onClose}
     >

@@ -293,11 +293,11 @@ export function Dashboard({ data }: { data: DashboardData }) {
       </div>
 
       {/* WEEKLY DELTA — the most important section */}
-      <div
-        style={{ padding: "24px 40px 0" }}
-      >
-        <WeeklyDeltaStrip delta={data.weeklyDelta} programme={data.programme} />
-      </div>
+      {!data.hiddenSections.includes("weeklyDelta") && (
+        <div style={{ padding: "24px 40px 0" }}>
+          <WeeklyDeltaStrip delta={data.weeklyDelta} programme={data.programme} />
+        </div>
+      )}
 
       {/* VITALS */}
       <div
@@ -314,15 +314,15 @@ export function Dashboard({ data }: { data: DashboardData }) {
       </div>
 
       {/* MILESTONES */}
-      <div
-        style={{ padding: "12px 40px 16px" }}
-      >
-        <MilestonesStrip
-          milestones={data.milestones}
-          programme={data.programme}
-          onOpen={setDetail}
-        />
-      </div>
+      {!data.hiddenSections.includes("milestones") && (
+        <div style={{ padding: "12px 40px 16px" }}>
+          <MilestonesStrip
+            milestones={data.milestones}
+            programme={data.programme}
+            onOpen={setDetail}
+          />
+        </div>
+      )}
 
       {/* RAID + DECISIONS */}
       <div
@@ -338,17 +338,35 @@ export function Dashboard({ data }: { data: DashboardData }) {
       </div>
 
       {/* COMMITMENTS + VALUE */}
-      <div
-        style={{
-          padding: "12px 40px 20px",
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "20px",
-        }}
-      >
-        <CommitmentsSummary commitments={data.commitments} onOpen={setDetail} />
-        <ValueTrackingSummary metrics={data.valueMetrics} onOpen={setDetail} />
-      </div>
+      {(() => {
+        const showCommitments = !data.hiddenSections.includes("commitments");
+        const showValue = !data.hiddenSections.includes("valueTracking");
+        if (!showCommitments && !showValue) return null;
+        return (
+          <div
+            style={{
+              padding: "12px 40px 20px",
+              display: "grid",
+              gridTemplateColumns:
+                showCommitments && showValue ? "1fr 1fr" : "1fr",
+              gap: "20px",
+            }}
+          >
+            {showCommitments && (
+              <CommitmentsSummary
+                commitments={data.commitments}
+                onOpen={setDetail}
+              />
+            )}
+            {showValue && (
+              <ValueTrackingSummary
+                metrics={data.valueMetrics}
+                onOpen={setDetail}
+              />
+            )}
+          </div>
+        );
+      })()}
 
       {/* FOOTER */}
       <div

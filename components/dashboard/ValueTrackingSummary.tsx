@@ -24,7 +24,7 @@ export function ValueTrackingSummary({
 
   return (
     <div>
-      <SectionHeader label="Value tracking · SOW §6" />
+      <SectionHeader label="Value tracking" />
       <div
         onClick={() => onOpen({ type: "value" })}
         style={{
