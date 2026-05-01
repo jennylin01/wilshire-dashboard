@@ -439,7 +439,9 @@ const EMPTY_WEEKLY_DELTA: WeeklyDelta = {
   headline: "",
   weekNumber: null,
   summary: "No weekly update yet — add a row to the Weekly delta database in Notion.",
+  progress: "",
   risks: "",
+  keyDecision: "",
   plan: "",
 };
 
@@ -476,7 +478,9 @@ export function mapWeeklyDelta(
     headline: string;
     weekNumber: number | null;
     summary: string;
+    progress: string;
     risks: string;
+    keyDecision: string;
     plan: string;
     startMs: number;
   };
@@ -495,8 +499,17 @@ export function mapWeeklyDelta(
       headline: readRichText(props["Headline"]),
       weekNumber: readNumber(props["Week number"]),
       summary: readRichText(props["Summary status"]),
+      // Column name in Notion has a typo ("progess"); read it verbatim.
+      progress: readRichText(props["This week progess"]),
       risks: readRichText(props["Key risks issues blockers"]),
-      plan: readRichText(props["Plan for next period"]),
+      // Column name in Notion has a trailing space ("Key Decision ").
+      keyDecision:
+        readRichText(props["Key Decision "]) ||
+        readRichText(props["Key Decision"]),
+      // Column was renamed from "Plan for next period" → "Plan for next week".
+      plan:
+        readRichText(props["Plan for next week"]) ||
+        readRichText(props["Plan for next period"]),
       startMs: isNaN(startMs) ? 0 : startMs,
     });
   }
@@ -517,7 +530,9 @@ export function mapWeeklyDelta(
     headline: chosen.headline,
     weekNumber: chosen.weekNumber,
     summary: chosen.summary,
+    progress: chosen.progress,
     risks: chosen.risks,
+    keyDecision: chosen.keyDecision,
     plan: chosen.plan,
     pageId: chosen.id,
   };

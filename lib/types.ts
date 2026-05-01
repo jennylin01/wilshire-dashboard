@@ -115,8 +115,15 @@ export interface WeeklyDelta {
   headline: string;
   // Engagement week number, 1..N (Notion: Week number)
   weekNumber: number | null;
+  // Notion: Summary status
   summary: string;
+  // Notion: This week progess (sic — typo in the column name)
+  progress: string;
+  // Notion: Key risks issues blockers
   risks: string;
+  // Notion: Key Decision
+  keyDecision: string;
+  // Notion: Plan for next week
   plan: string;
   // Notion page id of the chosen row, when one was selected. Absent in
   // empty state. Used by the dashboard inline editor to write changes back.

@@ -28,7 +28,9 @@ export async function POST(req: NextRequest) {
     headline?: unknown;
     weekNumber?: unknown;
     summary?: unknown;
+    progress?: unknown;
     risks?: unknown;
+    keyDecision?: unknown;
     plan?: unknown;
   };
   try {
@@ -49,7 +51,10 @@ export async function POST(req: NextRequest) {
   }
   const headline = typeof body.headline === "string" ? body.headline : "";
   const summary = typeof body.summary === "string" ? body.summary : "";
+  const progress = typeof body.progress === "string" ? body.progress : "";
   const risks = typeof body.risks === "string" ? body.risks : "";
+  const keyDecision =
+    typeof body.keyDecision === "string" ? body.keyDecision : "";
   const plan = typeof body.plan === "string" ? body.plan : "";
   const weekNumber =
     typeof body.weekNumber === "number" && Number.isFinite(body.weekNumber)
@@ -69,8 +74,12 @@ export async function POST(req: NextRequest) {
         Headline: { rich_text: richText(headline) },
         "Week number": { number: weekNumber },
         "Summary status": { rich_text: richText(summary) },
+        // Notion column has typo "progess"; preserve it to match the schema.
+        "This week progess": { rich_text: richText(progress) },
         "Key risks issues blockers": { rich_text: richText(risks) },
-        "Plan for next period": { rich_text: richText(plan) },
+        // Notion column has a trailing space ("Key Decision ").
+        "Key Decision ": { rich_text: richText(keyDecision) },
+        "Plan for next week": { rich_text: richText(plan) },
       },
     });
   } catch (err) {

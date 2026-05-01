@@ -21,7 +21,9 @@ export function WeeklyDeltaStrip({
     headline: delta.headline,
     weekNumber: delta.weekNumber == null ? "" : String(delta.weekNumber),
     summary: delta.summary,
+    progress: delta.progress,
     risks: delta.risks,
+    keyDecision: delta.keyDecision,
     plan: delta.plan,
   });
   const [saving, startSaving] = useTransition();
@@ -29,7 +31,7 @@ export function WeeklyDeltaStrip({
   const canEdit = Boolean(delta.pageId);
 
   const sections: {
-    key: "summary" | "risks" | "plan";
+    key: "summary" | "progress" | "risks" | "keyDecision" | "plan";
     label: string;
     body: string;
   }[] = [
@@ -38,8 +40,14 @@ export function WeeklyDeltaStrip({
       label: `Summary status w/e ${delta.weekEnding}`,
       body: delta.summary,
     },
+    {
+      key: "progress",
+      label: "This week's progress",
+      body: delta.progress,
+    },
     { key: "risks", label: "Key risks / issues / blockers", body: delta.risks },
-    { key: "plan", label: "Plan for next period", body: delta.plan },
+    { key: "keyDecision", label: "Key decisions", body: delta.keyDecision },
+    { key: "plan", label: "Plan for next week", body: delta.plan },
   ];
 
   const startEdit = () => {
@@ -47,7 +55,9 @@ export function WeeklyDeltaStrip({
       headline: delta.headline,
       weekNumber: delta.weekNumber == null ? "" : String(delta.weekNumber),
       summary: delta.summary,
+      progress: delta.progress,
       risks: delta.risks,
+      keyDecision: delta.keyDecision,
       plan: delta.plan,
     });
     setError(null);
@@ -79,7 +89,9 @@ export function WeeklyDeltaStrip({
                 ? parsedWeek
                 : null,
             summary: draft.summary,
+            progress: draft.progress,
             risks: draft.risks,
+            keyDecision: draft.keyDecision,
             plan: draft.plan,
           }),
         });
