@@ -47,14 +47,13 @@ export function MilestonesStrip({
 }) {
   const { theme } = useTheme();
 
-  // Only sized milestones appear. Placeholders are hidden entirely.
-  const sized = milestones.filter(
-    (m) => m.status !== "Placeholder" && m.amount > 0
-  );
+  // Hide explicit Placeholders only. Amount/% are billing-side concepts
+  // we don't surface on this engagement, so don't filter on them.
+  const sized = milestones.filter((m) => m.status !== "Placeholder");
 
   return (
     <>
-      <SectionHeader label="Key milestones" />
+      <SectionHeader label="Key milestones" href={programme.milestonesUrl} />
       <div
         onClick={() => onOpen({ type: "milestones" })}
         style={{
@@ -103,23 +102,26 @@ export function MilestonesStrip({
                 >
                   {m.id} · Wk{m.week}
                 </div>
-                <div
-                  style={{
-                    fontFamily: fontStack,
-                    fontSize: "26px",
-                    color: isCurrent ? theme.accent : theme.ink,
-                    fontWeight: 700,
-                    lineHeight: 1,
-                    marginBottom: "10px",
-                    letterSpacing: "-0.03em",
-                  }}
-                >
-                  {fmtAmount(m.amount)}
-                </div>
+                {m.amount > 0 && (
+                  <div
+                    style={{
+                      fontFamily: fontStack,
+                      fontSize: "26px",
+                      color: isCurrent ? theme.accent : theme.ink,
+                      fontWeight: 700,
+                      lineHeight: 1,
+                      marginBottom: "10px",
+                      letterSpacing: "-0.03em",
+                    }}
+                  >
+                    {fmtAmount(m.amount)}
+                  </div>
+                )}
                 <div
                   style={{
                     fontSize: "14px",
-                    color: theme.inkSoft,
+                    color: isCurrent ? theme.accent : theme.ink,
+                    fontWeight: m.amount > 0 ? 400 : 600,
                     lineHeight: 1.35,
                     marginBottom: "10px",
                     minHeight: "32px",
@@ -135,7 +137,6 @@ export function MilestonesStrip({
                     fontWeight: 600,
                   }}
                 >
-                  {m.pct ? `${m.pct}% · ` : ""}
                   {statusLabel(m.status)}
                 </div>
               </div>

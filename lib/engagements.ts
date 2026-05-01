@@ -1,4 +1,4 @@
-import type { Programme, WorkstreamId } from "@/lib/types";
+import type { DashboardSection, Programme, WorkstreamId } from "@/lib/types";
 
 // Workstream definition for an engagement. `matchers` is a list of
 // lowercase substrings that `mapWorkstreams` uses to classify a Notion
@@ -41,6 +41,8 @@ export interface Engagement {
   // Workstream definitions for this engagement — shapes the workstream
   // grid on the dashboard and how Notion Tasks rows are classified.
   workstreams: WorkstreamDef[];
+  // Sections to hide from the rendered dashboard for this engagement.
+  hiddenSections?: DashboardSection[];
   // Env var name that holds this engagement's client-side password.
   // During the multi-tenant migration, Wilshire falls back to the legacy
   // DASHBOARD_PASSWORD if CLIENT_PASSWORD_WILSHIRE isn't set — see auth.ts.
@@ -74,6 +76,7 @@ const WILSHIRE: Engagement = {
     // `today` is re-computed on each render in load-data.ts
     today: "",
     notionUrl: "https://www.notion.so/3485e123a435810ab817edd0326ff7ab",
+    milestonesUrl: "https://www.notion.so/adbf9290c7f2442f8aeb3e41ad1f0f9f",
   },
   notion: {
     // Tasks DB — "Tasks — 8-Week Plan" built for SOW 7.
