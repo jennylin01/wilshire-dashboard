@@ -347,13 +347,13 @@ export function WeeklyDeltaStrip({
         </div>
       )}
 
-      {/* 3-column grid for Summary / Risks / Plan in view mode.
-          Stacks vertically in edit mode so textareas have room. */}
+      {/* Vertical stack for Summary / Risks / Plan — easier to read than
+          a 3-column grid. */}
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: isEditing ? "1fr" : "repeat(3, 1fr)",
-          gap: isEditing ? "14px" : "20px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "14px",
         }}
       >
         {sections.map((s) => (
