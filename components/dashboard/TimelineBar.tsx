@@ -62,7 +62,6 @@ export function TimelineBar({
           const wk = i;
           const isPast = wk < programme.currentWeek;
           const isCurrent = wk === programme.currentWeek;
-          const mThisWeek = milestones.filter((m) => m.week === wk);
           return (
             <div key={i} style={{ textAlign: "center" }}>
               <div
@@ -87,19 +86,6 @@ export function TimelineBar({
               >
                 W{wk}
               </div>
-              {mThisWeek.length > 0 && (
-                <div
-                  style={{
-                    fontFamily: monoStack,
-                    fontSize: "12px",
-                    color: theme.ink,
-                    marginTop: "2px",
-                    fontWeight: 500,
-                  }}
-                >
-                  {mThisWeek.map((m) => m.id).join(" ")}
-                </div>
-              )}
             </div>
           );
         })}

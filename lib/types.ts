@@ -140,6 +140,13 @@ export interface Programme {
   fee: number;
   clientSponsor: string;
   workstreamLead: string;
+  // Senior contacts surfaced on the masthead. Optional — engagements
+  // without a Motive Capital / Motive Create line just hide the row.
+  motiveCapital?: string;
+  motiveCreate?: string;
+  // Override for the masthead subtitle. Defaults to a "{N}-week …"
+  // template when not provided.
+  subtitle?: string;
   sponsors: string[];
   start: string;
   end: string;

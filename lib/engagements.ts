@@ -58,8 +58,12 @@ const WILSHIRE: Engagement = {
     // $200k base; up to $250k contingent ($100k FTE-capacity-release fee +
     // $150k exit performance bonus) — see Wilshire — AI Acceleration page.
     fee: 200,
-    clientSponsor: "Hannah Valva (CTO)",
+    clientSponsor: "Andy Stewart",
     workstreamLead: "Mo Beldo",
+    motiveCapital: "Chris Wiliam",
+    motiveCreate: "Sreeram Visvanathan (Partner) / Jenny Lin (MD)",
+    subtitle:
+      "AI Mobilization engagement between Motive Labs US, LLC and Wilshire Advisors LLC.",
     sponsors: [
       "Christina Walsh, CFO",
       "Todd Kessler, CRO",
@@ -69,12 +73,12 @@ const WILSHIRE: Engagement = {
       "Andrew Dabinett (CRO SME)",
       "Tamika Peterkin (CRO SME)",
     ],
-    // Wk 0 (Apr 27 - May 1) is the planning / pre-engagement week.
-    // Wk 1 (May 4-10) is kickoff. Wk 8 (Jun 22-28) is the final week.
+    // Wk 0 (Apr 27 - May 3) is the planning / pre-engagement week.
+    // Wk 1 (May 4-10) is kickoff. Wk 9 (Jun 29 - Jul 3) is the final week.
     start: "Apr 27, 2026",
-    end: "Jun 28, 2026",
+    end: "Jul 3, 2026",
     currentWeek: 0,
-    totalWeeks: 9,
+    totalWeeks: 10,
     // `today` is re-computed on each render in load-data.ts
     today: "",
     notionUrl: "https://www.notion.so/3485e123a435810ab817edd0326ff7ab",

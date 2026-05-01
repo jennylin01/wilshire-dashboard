@@ -40,8 +40,8 @@ export function Masthead({ programme }: { programme: Programme }) {
             fontWeight: 400,
           }}
         >
-          A {programme.totalWeeks}-week AI &amp; Data Labs engagement between{" "}
-          {programme.supplier} and {programme.client}.
+          {programme.subtitle ??
+            `A ${programme.totalWeeks}-week AI & Data Labs engagement between ${programme.supplier} and ${programme.client}.`}
         </div>
       </div>
       <div
@@ -65,12 +65,22 @@ export function Masthead({ programme }: { programme: Programme }) {
             {programme.clientSponsor}
           </span>
         </div>
-        <div>
-          <span style={{ color: theme.mutedSoft }}>Lead</span>{" "}
-          <span style={{ color: theme.ink, fontWeight: 500 }}>
-            {programme.workstreamLead}
-          </span>
-        </div>
+        {programme.motiveCapital && (
+          <div>
+            <span style={{ color: theme.mutedSoft }}>Motive Capital</span>{" "}
+            <span style={{ color: theme.ink, fontWeight: 500 }}>
+              {programme.motiveCapital}
+            </span>
+          </div>
+        )}
+        {programme.motiveCreate && (
+          <div>
+            <span style={{ color: theme.mutedSoft }}>Motive Create</span>{" "}
+            <span style={{ color: theme.ink, fontWeight: 500 }}>
+              {programme.motiveCreate}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
