@@ -27,14 +27,22 @@ export function VitalsStrip({
     (d) => d.status === "Open" || d.status === "Pending decision"
   ).length;
 
-  // Overall RAG = worst RAG across workstreams
-  const ragOrder = { green: 0, amber: 1, red: 2 } as const;
-  const overall = data.workstreams
-    .map((w) => w.rag)
-    .reduce<"green" | "amber" | "red">(
-      (acc, r) => (ragOrder[r] > ragOrder[acc] ? r : acc),
-      "green"
-    );
+  // Overall RAG comes from the Weekly delta row's RAG select column.
+  // Falls back to detecting Red/Amber/Green tokens in the Headline text
+  // for legacy rows where the column isn't set. Defaults to Green.
+  const headlineMatch = data.weeklyDelta.headline.match(
+    /\b(red|amber|yellow|green)\b/i
+  );
+  const headlineRag = headlineMatch
+    ? headlineMatch[1].toLowerCase() === "red"
+      ? "red"
+      : headlineMatch[1].toLowerCase() === "green"
+        ? "green"
+        : "amber"
+    : null;
+  const overall: "green" | "amber" | "red" = data.weeklyDelta.rag
+    ? (data.weeklyDelta.rag.toLowerCase() as "red" | "amber" | "green")
+    : (headlineRag as "red" | "amber" | "green" | null) ?? "green";
   const overallLabel =
     overall === "red" ? "Red" : overall === "amber" ? "Amber" : "Green";
   const overallAccent =
