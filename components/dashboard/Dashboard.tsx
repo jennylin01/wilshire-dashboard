@@ -324,17 +324,9 @@ export function Dashboard({ data }: { data: DashboardData }) {
         </div>
       )}
 
-      {/* RAID + DECISIONS */}
-      <div
-        style={{
-          padding: "12px 40px 16px",
-          display: "grid",
-          gridTemplateColumns: "2fr 1fr",
-          gap: "20px",
-        }}
-      >
+      {/* RAID */}
+      <div style={{ padding: "12px 40px 16px" }}>
         <RiskList risks={data.risks} onOpen={setDetail} />
-        <DecisionsPanel decisions={data.decisions} onOpen={setDetail} />
       </div>
 
       {/* COMMITMENTS + VALUE */}
