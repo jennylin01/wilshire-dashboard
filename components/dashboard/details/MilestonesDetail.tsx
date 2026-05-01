@@ -44,84 +44,121 @@ export function MilestonesDetail({
   onClose: () => void;
 }) {
   const { theme } = useTheme();
-  // Show only sized milestones — placeholders are hidden.
-  const sized = milestones.filter(
-    (m) => m.status !== "Placeholder" && m.amount > 0
-  );
+  // Hide explicit Placeholders only. Amount/% are billing-side concepts
+  // we don't surface, so don't filter on them.
+  const visible = milestones.filter((m) => m.status !== "Placeholder");
+
+  // Group by workstream, preserving week-asc order within each group.
+  const byWorkstream = new Map<string, Milestone[]>();
+  for (const m of visible) {
+    const key = m.workstream || "Unassigned";
+    const arr = byWorkstream.get(key) ?? [];
+    arr.push(m);
+    byWorkstream.set(key, arr);
+  }
+  byWorkstream.forEach((arr) => {
+    arr.sort((a: Milestone, b: Milestone) => a.week - b.week);
+  });
+  // Stable workstream order: Governance first, then alphabetical.
+  const workstreamOrder = Array.from(byWorkstream.keys()).sort((a, b) => {
+    if (a === "Governance") return -1;
+    if (b === "Governance") return 1;
+    return a.localeCompare(b);
+  });
 
   return (
     <DetailPanel
       title="Key milestones"
-      subtitle={`${sized.length} milestones · ${programme.totalWeeks}-week engagement`}
+      subtitle={`${visible.length} milestones · ${programme.totalWeeks}-week engagement`}
       notionUrl={notionUrl}
       onClose={onClose}
     >
-      {sized.map((m, i) => {
-        const { color, bg } = statusStyle(theme, m.status);
+      {workstreamOrder.map((ws, gi) => {
+        const items = byWorkstream.get(ws) ?? [];
         return (
           <div
-            key={m.id + "-" + m.week + "-" + i}
+            key={ws}
             style={{
-              padding: "14px 0",
-              borderBottom:
-                i < sized.length - 1
-                  ? `1px solid ${theme.ruleSoft}`
-                  : "none",
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
+              marginTop: gi === 0 ? 0 : "20px",
+              paddingTop: gi === 0 ? 0 : "16px",
+              borderTop:
+                gi === 0 ? "none" : `1px solid ${theme.rule}`,
             }}
           >
             <div
               style={{
                 fontFamily: monoStack,
-                fontSize: "13px",
+                fontSize: "11px",
                 color: theme.muted,
-                width: "60px",
-              }}
-            >
-              {m.id}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: "14px",
-                  color: theme.ink,
-                  marginBottom: "4px",
-                  fontWeight: 500,
-                }}
-              >
-                {m.label}
-              </div>
-              <div
-                style={{
-                  fontSize: "13px",
-                  color: theme.muted,
-                  fontFamily: monoStack,
-                }}
-              >
-                Week {m.week || "TBD"}
-                {m.pct ? ` · ${m.pct}%` : ""}
-                {m.workstream ? ` · ${m.workstream}` : ""}
-              </div>
-            </div>
-            <div
-              style={{
-                fontFamily: fontStack,
-                fontSize: "18px",
-                color: m.status === "Placeholder" ? theme.mutedSoft : theme.ink,
-                minWidth: "70px",
-                textAlign: "right",
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                marginBottom: "10px",
                 fontWeight: 600,
               }}
             >
-              {fmtAmount(m.amount)}
+              {ws} · {items.length}
             </div>
-            <Pill label={m.status} color={color} bg={bg} />
+            {items.map((m, i) => {
+              const { color, bg } = statusStyle(theme, m.status);
+              return (
+                <div
+                  key={m.id + "-" + m.week + "-" + i}
+                  style={{
+                    padding: "12px 0",
+                    borderBottom:
+                      i < items.length - 1
+                        ? `1px solid ${theme.ruleSoft}`
+                        : "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "16px",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: monoStack,
+                      fontSize: "13px",
+                      color: theme.muted,
+                      width: "52px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    Wk {m.week || "—"}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: "14px",
+                        color: theme.ink,
+                        fontWeight: 500,
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {m.label}
+                    </div>
+                  </div>
+                  {m.amount > 0 && (
+                    <div
+                      style={{
+                        fontFamily: fontStack,
+                        fontSize: "16px",
+                        color: theme.ink,
+                        minWidth: "60px",
+                        textAlign: "right",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {fmtAmount(m.amount)}
+                    </div>
+                  )}
+                  <Pill label={m.status} color={color} bg={bg} />
+                </div>
+              );
+            })}
           </div>
         );
       })}
-      {milestones.length === 0 && (
+      {visible.length === 0 && (
         <div
           style={{
             color: theme.muted,
@@ -129,7 +166,7 @@ export function MilestonesDetail({
             padding: "14px 0",
           }}
         >
-          No milestones defined yet. Add rows to the Invoice tracker in
+          No milestones defined yet. Add rows to the Milestones tracker in
           Notion.
         </div>
       )}
@@ -144,7 +181,7 @@ export function MilestonesDetail({
           lineHeight: 1.5,
         }}
       >
-        Live from Notion Invoice tracker. Programme is Week{" "}
+        Live from Notion Milestones tracker. Programme is Week{" "}
         {programme.currentWeek} of {programme.totalWeeks}.
       </div>
     </DetailPanel>

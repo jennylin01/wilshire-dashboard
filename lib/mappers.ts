@@ -358,9 +358,9 @@ function parseMilestoneTitle(title: string): { id: string; label: string } {
   return { id: title.split(/\s+/)[0] || "M?", label: title };
 }
 
-// "Week 1 — Apr 20-26" → 1. "Ongoing" / unknown → 0.
+// "Wk 1 — May 11-17" or "Week 1 — Apr 20-26" → 1. "Ongoing" / unknown → 0.
 function parseWeekDue(raw: string): number {
-  const m = raw.match(/Week\s+(\d+)/i);
+  const m = raw.match(/(?:Wk|Week)\s+(\d+)/i);
   return m ? parseInt(m[1], 10) : 0;
 }
 

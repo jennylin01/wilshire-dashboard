@@ -74,5 +74,6 @@ export async function loadDashboardData(
       minute: "2-digit",
       timeZoneName: "short",
     }),
+    hiddenSections: engagement.hiddenSections ?? [],
   };
 }

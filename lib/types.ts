@@ -130,7 +130,18 @@ export interface Programme {
   totalWeeks: number;
   today: string;
   notionUrl: string;
+  // Optional deep-link to the Milestones tracker DB in Notion. Surfaced
+  // on the MilestonesStrip section header as an "Open in Notion" affordance.
+  milestonesUrl?: string;
 }
+
+// Sections of the dashboard that can be conditionally hidden per engagement.
+// The dashboard always renders Masthead, TimelineBar, VitalsStrip, Workstreams,
+// Risks, Decisions and Commitments. Sections listed below are optional.
+export type DashboardSection =
+  | "weeklyDelta"
+  | "milestones"
+  | "valueTracking";
 
 export interface DashboardData {
   programme: Programme;
@@ -144,4 +155,6 @@ export interface DashboardData {
   valueMetrics: ValueMetric[];
   tasks: Task[];
   lastSync: string;
+  // Sections to hide from rendering (per-engagement config).
+  hiddenSections: DashboardSection[];
 }
