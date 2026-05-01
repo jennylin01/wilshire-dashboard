@@ -70,6 +70,7 @@ export function Dashboard({ data }: { data: DashboardData }) {
           risks={data.risks}
           metrics={data.valueMetrics}
           tasks={data.tasks}
+          milestones={data.milestones}
           notionUrl={data.programme.notionUrl}
           onClose={close}
           onOpenAgent={(name) => setDetail({ type: "agent", name })}

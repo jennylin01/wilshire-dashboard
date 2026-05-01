@@ -5,7 +5,7 @@ import { DetailPanel } from "@/components/dashboard/DetailPanel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Pill } from "@/components/ui/Pill";
 import { fontStack, monoStack, ragBg, ragColor } from "@/lib/theme";
-import type { Risk, Task, ValueMetric, Workstream } from "@/lib/types";
+import type { Milestone, Risk, Task, ValueMetric, Workstream } from "@/lib/types";
 
 function matchesWorkstream(raw: string, matchers: string[]): boolean {
   const s = (raw || "").toLowerCase();
@@ -30,6 +30,7 @@ export function WorkstreamDetail({
   risks,
   metrics,
   tasks,
+  milestones,
   notionUrl,
   onClose,
   onOpenAgent,
@@ -38,6 +39,7 @@ export function WorkstreamDetail({
   risks: Risk[];
   metrics: ValueMetric[];
   tasks: Task[];
+  milestones: Milestone[];
   notionUrl: string;
   onClose: () => void;
   onOpenAgent?: (agentName: string) => void;
@@ -49,6 +51,9 @@ export function WorkstreamDetail({
   const wsTasks = tasks.filter((t) =>
     matchesWorkstream(t.workstream, ws.matchers)
   );
+  const wsMilestones = milestones
+    .filter((m) => matchesWorkstream(m.workstream, ws.matchers))
+    .sort((a, b) => a.week - b.week);
 
   // Group tasks by Sub-workstream. Tasks with no Sub-workstream land under
   // a bucket keyed by empty string, which we render last as "Other / general".
@@ -331,25 +336,57 @@ export function WorkstreamDetail({
         </>
       )}
 
-      {ws.milestones.length > 0 && (
+      {wsMilestones.length > 0 && (
         <>
           <SectionHeader label="Milestones" />
           <div style={{ marginBottom: "28px" }}>
-            {ws.milestones.map((m, i) => (
+            {wsMilestones.map((m, i) => (
               <div
-                key={i}
+                key={m.id + "-" + m.week + "-" + i}
                 style={{
                   padding: "10px 0",
-                  fontFamily: fontStack,
-                  fontSize: "15px",
-                  color: theme.ink,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
                   borderBottom:
-                    i < ws.milestones.length - 1
+                    i < wsMilestones.length - 1
                       ? `1px solid ${theme.ruleSoft}`
                       : "none",
                 }}
               >
-                {m}
+                <div
+                  style={{
+                    fontFamily: monoStack,
+                    fontSize: "12px",
+                    color: theme.muted,
+                    width: "44px",
+                    flexShrink: 0,
+                  }}
+                >
+                  Wk {m.week || "—"}
+                </div>
+                <div
+                  style={{
+                    flex: 1,
+                    fontFamily: fontStack,
+                    fontSize: "15px",
+                    color: theme.ink,
+                  }}
+                >
+                  {m.label}
+                </div>
+                <div
+                  style={{
+                    fontFamily: monoStack,
+                    fontSize: "11px",
+                    color: statusColor(theme, m.status),
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  {m.status}
+                </div>
               </div>
             ))}
           </div>
