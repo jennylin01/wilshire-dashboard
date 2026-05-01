@@ -66,6 +66,9 @@ function cachedQuery(
 export interface EngagementFetchers {
   fetchTasks: () => Promise<unknown[]>;
   fetchRaid: () => Promise<unknown[]>;
+  // Returns [] when the engagement has no dedicated decisions DB
+  // (DecisionsPanel then falls back to filtering raid by Type=Decision).
+  fetchDecisions: () => Promise<unknown[]>;
   fetchCommitments: () => Promise<unknown[]>;
   fetchValueTracking: () => Promise<unknown[]>;
   fetchMeetings: () => Promise<unknown[]>;
@@ -80,9 +83,13 @@ export function fetchersForEngagement(
   const e = getEngagement(slug);
   if (!e) return null;
   const n = e.notion;
+  const decisionsId = n.decisions;
   return {
     fetchTasks: cachedQuery(slug, "tasks", n.tasks),
     fetchRaid: cachedQuery(slug, "raid", n.raid),
+    fetchDecisions: decisionsId
+      ? cachedQuery(slug, "decisions", decisionsId)
+      : async () => [],
     fetchCommitments: cachedQuery(slug, "commitments", n.commitments),
     fetchValueTracking: cachedQuery(slug, "valueTracking", n.valueTracking),
     fetchMeetings: cachedQuery(slug, "meetings", n.meetings),

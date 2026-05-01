@@ -24,6 +24,9 @@ export interface WorkstreamDef {
 export interface EngagementNotion {
   tasks: string;
   raid: string;
+  // Optional dedicated Decisions log DB. When set, the DecisionsPanel reads
+  // from here instead of filtering Type=Decision rows out of the raid DB.
+  decisions?: string;
   commitments: string;
   valueTracking: string;
   // meetings DB is currently unused by the dashboard — leave empty string
@@ -89,6 +92,7 @@ const WILSHIRE: Engagement = {
     // Tasks DB — "Tasks — 8-Week Plan" built for SOW 7.
     tasks: "a7027b53-ecd4-4409-bdc3-7bfe96a70f8f",
     raid: "3c657330-bcb7-4933-abc2-eca38274b7b4",
+    decisions: "3535e123-a435-812e-a5dd-000b2d552ecc",
     commitments: "57e9fb3b-e3dd-40f0-bb47-9e29b10aef80",
     valueTracking: "46977b20-a8cd-4a8c-bd28-fbceaf6becbd",
     meetings: "8ab0d80e-7a93-42fb-ac36-164dc002824d",

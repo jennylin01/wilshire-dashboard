@@ -20,7 +20,7 @@ export function DecisionsPanel({
 
   return (
     <div>
-      <SectionHeader label="Decisions pending" />
+      <SectionHeader label="Decisions log" />
       <div
         onClick={() => onOpen({ type: "decisions" })}
         style={{

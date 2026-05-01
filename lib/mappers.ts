@@ -230,12 +230,20 @@ export function mapRisks(rawRaid: unknown[]): Risk[] {
   return out;
 }
 
-export function mapDecisions(rawRaid: unknown[]): Decision[] {
+export function mapDecisions(
+  rawRaid: unknown[],
+  // When set, treat every row as a decision regardless of Type. Used when the
+  // engagement has a dedicated Decisions log DB — its rows might leave Type
+  // empty or use it for finer classification, and we still want them visible.
+  fromDedicatedDb = false
+): Decision[] {
   const out: Decision[] = [];
   for (const page of rawRaid) {
     const props = safeProps(page);
     const type = readSelect(props["Type"]);
-    if (type !== "Decision") continue;
+    // From a shared RAID DB, only Decision-typed rows are decisions. From a
+    // dedicated Decisions log DB, every row counts regardless of Type.
+    if (!fromDedicatedDb && type !== "Decision") continue;
     const item = readTitle(props["Item"]);
     if (!item) continue;
     out.push({

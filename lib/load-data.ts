@@ -28,6 +28,7 @@ export async function loadDashboardData(
   const [
     rawTasks,
     rawRaid,
+    rawDecisions,
     rawCommitments,
     rawValue,
     rawInvoices,
@@ -36,12 +37,17 @@ export async function loadDashboardData(
   ] = await Promise.all([
     f.fetchTasks(),
     f.fetchRaid(),
+    f.fetchDecisions(),
     f.fetchCommitments(),
     f.fetchValueTracking(),
     f.fetchInvoices(),
     f.fetchWeeklyDelta(),
     f.fetchWeeklyDeltaChanges(),
   ]);
+  // When a dedicated Decisions log DB is configured, source decisions from
+  // there (and treat all its rows as decisions). Otherwise fall back to
+  // filtering Type=Decision rows out of the RAID DB.
+  const hasDedicatedDecisions = !!engagement.notion.decisions;
 
   const programme: Programme = {
     ...engagement.programme,
@@ -64,7 +70,9 @@ export async function loadDashboardData(
     workstreams: mapWorkstreams(rawTasks, engagement.workstreams),
     tasks: mapTasks(rawTasks),
     risks: mapRisks(rawRaid),
-    decisions: mapDecisions(rawRaid),
+    decisions: hasDedicatedDecisions
+      ? mapDecisions(rawDecisions, true)
+      : mapDecisions(rawRaid),
     commitments: mapCommitments(rawCommitments),
     valueMetrics: mapValueMetrics(rawValue, engagement.workstreams),
     lastSync: new Date().toLocaleString("en-US", {
