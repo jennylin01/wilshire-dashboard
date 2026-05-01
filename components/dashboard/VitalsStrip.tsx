@@ -18,7 +18,7 @@ export function VitalsStrip({
     (r) => r.severity === "High" && r.status.toLowerCase() !== "closed"
   ).length;
   const lateCommitments = data.commitments.filter(
-    (c) => c.status === "Late"
+    (c) => c.status === "Late" || c.status === "Blocked"
   ).length;
   const notStartedCount = data.commitments.filter(
     (c) => c.status === "Not started"
@@ -70,7 +70,7 @@ export function VitalsStrip({
         onClick={() => onOpen({ type: "risks" })}
       />
       <KPI
-        label="Late client commitments"
+        label="Late or blocked commitments"
         value={lateCommitments}
         sub={`${notStartedCount} not started`}
         accent={theme.red}
