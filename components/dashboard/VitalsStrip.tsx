@@ -24,7 +24,7 @@ export function VitalsStrip({
     (c) => c.status === "Not started"
   ).length;
   const pendingDecisions = data.decisions.filter(
-    (d) => d.status === "Pending decision"
+    (d) => d.status === "Open" || d.status === "Pending decision"
   ).length;
 
   // Overall RAG = worst RAG across workstreams
