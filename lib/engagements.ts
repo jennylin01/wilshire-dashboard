@@ -65,6 +65,7 @@ const WILSHIRE: Engagement = {
     workstreamLead: "Mo Beldo",
     motiveCapital: "Chris Wiliam",
     motiveCreate: "Sreeram Visvanathan (Partner) / Jenny Lin (MD)",
+    deliveryLead: "Mo Beldo (MC), Hanna Valva (Wilshire)",
     subtitle:
       "AI Mobilization engagement between Motive Labs US, LLC and Wilshire Advisors LLC.",
     sponsors: [

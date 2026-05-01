@@ -54,12 +54,6 @@ export function Masthead({ programme }: { programme: Programme }) {
         }}
       >
         <div>
-          <span style={{ color: theme.mutedSoft }}>Fee</span>{" "}
-          <span style={{ color: theme.ink, fontWeight: 500 }}>
-            ${programme.fee}k fixed
-          </span>
-        </div>
-        <div>
           <span style={{ color: theme.mutedSoft }}>Sponsor</span>{" "}
           <span style={{ color: theme.ink, fontWeight: 500 }}>
             {programme.clientSponsor}
@@ -78,6 +72,14 @@ export function Masthead({ programme }: { programme: Programme }) {
             <span style={{ color: theme.mutedSoft }}>Motive Create</span>{" "}
             <span style={{ color: theme.ink, fontWeight: 500 }}>
               {programme.motiveCreate}
+            </span>
+          </div>
+        )}
+        {programme.deliveryLead && (
+          <div>
+            <span style={{ color: theme.mutedSoft }}>Delivery Lead</span>{" "}
+            <span style={{ color: theme.ink, fontWeight: 500 }}>
+              {programme.deliveryLead}
             </span>
           </div>
         )}
