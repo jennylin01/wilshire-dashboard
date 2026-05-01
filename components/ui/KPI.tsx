@@ -3,6 +3,7 @@
 import { ArrowUpRight } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { fontStack } from "@/lib/theme";
+import { NotionBadge } from "./NotionBadge";
 
 export function KPI({
   label,
@@ -10,12 +11,16 @@ export function KPI({
   sub,
   accent,
   onClick,
+  notionHref,
 }: {
   label: string;
   value: string | number;
   sub?: string;
   accent?: string;
   onClick?: () => void;
+  // When set, renders a small Notion badge in the top-right corner that
+  // links to the source DB. Replaces the default ArrowUpRight affordance.
+  notionHref?: string;
 }) {
   const { theme } = useTheme();
   return (
@@ -70,16 +75,24 @@ export function KPI({
           {sub}
         </div>
       )}
-      {onClick && (
-        <ArrowUpRight
-          size={13}
-          style={{
-            position: "absolute",
-            top: "18px",
-            right: "18px",
-            color: theme.mutedSoft,
-          }}
+      {notionHref ? (
+        <NotionBadge
+          href={notionHref}
+          size={20}
+          style={{ position: "absolute", top: "16px", right: "16px" }}
         />
+      ) : (
+        onClick && (
+          <ArrowUpRight
+            size={13}
+            style={{
+              position: "absolute",
+              top: "18px",
+              right: "18px",
+              color: theme.mutedSoft,
+            }}
+          />
+        )
       )}
     </div>
   );

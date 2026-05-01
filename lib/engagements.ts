@@ -87,6 +87,11 @@ const WILSHIRE: Engagement = {
     notionUrl: "https://www.notion.so/3485e123a435810ab817edd0326ff7ab",
     milestonesUrl: "https://www.notion.so/adbf9290c7f2442f8aeb3e41ad1f0f9f",
     weeklyDeltaUrl: "https://www.notion.so/a04112d9d558467b86d8f8e997246995",
+    raidUrl: "https://www.notion.so/aa53fe85334846e5be3763f693675841",
+    decisionsUrl: "https://www.notion.so/3535e123a4358059aba8d24882c8568b",
+    commitmentsUrl: "https://www.notion.so/2ab70121cb994fe895c48f47c9cbd068",
+    tasksUrl: "https://www.notion.so/969ba8dd651d416db026ab8b2b9561b7",
+    valueTrackingUrl: "https://www.notion.so/600550d5753b423ab79fcb9867507da4",
   },
   notion: {
     // Tasks DB — "Tasks — 8-Week Plan" built for SOW 7.

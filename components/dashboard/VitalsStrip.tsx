@@ -67,8 +67,9 @@ export function VitalsStrip({
       <KPI
         label="Overall RAG"
         value={overallLabel}
-        sub="Rolled up from workstreams"
+        sub="From Weekly delta row"
         accent={overallAccent}
+        notionHref={data.programme.weeklyDeltaUrl}
       />
       <KPI
         label="High-sev risks open"
@@ -76,6 +77,7 @@ export function VitalsStrip({
         sub="Monitor daily"
         accent={theme.red}
         onClick={() => onOpen({ type: "risks" })}
+        notionHref={data.programme.raidUrl}
       />
       <KPI
         label="Late or blocked commitments"
@@ -83,6 +85,7 @@ export function VitalsStrip({
         sub={`${notStartedCount} not started`}
         accent={theme.red}
         onClick={() => onOpen({ type: "commitment" })}
+        notionHref={data.programme.commitmentsUrl}
       />
       <KPI
         label="Pending decisions"
@@ -90,6 +93,7 @@ export function VitalsStrip({
         sub="Open items"
         accent={theme.amber}
         onClick={() => onOpen({ type: "decisions" })}
+        notionHref={data.programme.decisionsUrl}
       />
     </div>
   );

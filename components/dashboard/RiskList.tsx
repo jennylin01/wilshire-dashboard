@@ -4,21 +4,26 @@ import { ArrowUpRight } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { monoStack } from "@/lib/theme";
-import type { Risk } from "@/lib/types";
+import type { Programme, Risk } from "@/lib/types";
 import type { DetailRef } from "./Dashboard";
 
 export function RiskList({
   risks,
+  programme,
   onOpen,
 }: {
   risks: Risk[];
+  programme: Programme;
   onOpen: (d: DetailRef) => void;
 }) {
   const { theme } = useTheme();
   const top = risks.slice(0, 6);
   return (
     <div>
-      <SectionHeader label="RAID · items needing leadership attention" />
+      <SectionHeader
+        label="RAID · items needing leadership attention"
+        href={programme.raidUrl}
+      />
       <div
         style={{
           background: theme.surface,

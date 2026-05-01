@@ -160,6 +160,13 @@ export interface Programme {
   // Optional deep-link to the Weekly delta DB in Notion. Surfaced on the
   // WeeklyDeltaStrip header so users can jump straight to edit the row.
   weeklyDeltaUrl?: string;
+  // Optional deep-links surfaced on tiles and section headers via the
+  // NotionBadge so users can jump straight to the source DB.
+  raidUrl?: string;
+  decisionsUrl?: string;
+  commitmentsUrl?: string;
+  tasksUrl?: string;
+  valueTrackingUrl?: string;
 }
 
 // Sections of the dashboard that can be conditionally hidden per engagement.

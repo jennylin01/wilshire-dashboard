@@ -4,20 +4,22 @@ import { ArrowUpRight } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { fontStack, monoStack, ragColor } from "@/lib/theme";
-import type { Workstream } from "@/lib/types";
+import type { Programme, Workstream } from "@/lib/types";
 import type { DetailRef } from "./Dashboard";
 
 export function WorkstreamsGrid({
   workstreams,
+  programme,
   onOpen,
 }: {
   workstreams: Workstream[];
+  programme: Programme;
   onOpen: (d: DetailRef) => void;
 }) {
   const { theme } = useTheme();
   return (
     <>
-      <SectionHeader label="Workstreams" />
+      <SectionHeader label="Workstreams" href={programme.tasksUrl} />
       <div
         style={{
           display: "grid",

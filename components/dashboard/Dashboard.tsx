@@ -310,7 +310,11 @@ export function Dashboard({ data }: { data: DashboardData }) {
       <div
         style={{ padding: "28px 40px 16px" }}
       >
-        <WorkstreamsGrid workstreams={data.workstreams} onOpen={setDetail} />
+        <WorkstreamsGrid
+          workstreams={data.workstreams}
+          programme={data.programme}
+          onOpen={setDetail}
+        />
       </div>
 
       {/* MILESTONES */}
@@ -326,7 +330,11 @@ export function Dashboard({ data }: { data: DashboardData }) {
 
       {/* RAID */}
       <div style={{ padding: "12px 40px 16px" }}>
-        <RiskList risks={data.risks} onOpen={setDetail} />
+        <RiskList
+          risks={data.risks}
+          programme={data.programme}
+          onOpen={setDetail}
+        />
       </div>
 
       {/* COMMITMENTS + VALUE */}

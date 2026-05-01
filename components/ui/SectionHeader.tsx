@@ -2,18 +2,20 @@
 
 import { useTheme } from "@/components/ThemeProvider";
 import { fontStack } from "@/lib/theme";
-import { ArrowUpRight } from "lucide-react";
+import { NotionBadge } from "./NotionBadge";
 
 export function SectionHeader({
   label,
   href,
 }: {
   label: string;
+  // When set, renders a small Notion badge after the label that links to
+  // the source DB in Notion.
   href?: string;
 }) {
   const { theme } = useTheme();
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
       <h2
         style={{
           fontFamily: fontStack,
@@ -27,35 +29,11 @@ export function SectionHeader({
         {label}
       </h2>
       {href && (
-        <a
+        <NotionBadge
           href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Open ${label} in Notion`}
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "4px",
-            fontFamily: fontStack,
-            fontSize: "12px",
-            fontWeight: 500,
-            color: theme.muted,
-            textDecoration: "none",
-            padding: "2px 6px",
-            borderRadius: "3px",
-            transition: "color 0.1s",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.color = theme.ink;
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.color = theme.muted;
-          }}
-        >
-          Open in Notion
-          <ArrowUpRight size={12} />
-        </a>
+          size={18}
+          title={`Open ${label} in Notion`}
+        />
       )}
       <div style={{ flex: 1, height: "1px", background: theme.rule }} />
     </div>
