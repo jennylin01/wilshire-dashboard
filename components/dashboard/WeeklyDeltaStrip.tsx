@@ -62,12 +62,17 @@ export function WeeklyDeltaStrip({
     risks: delta.risks,
     keyDecision: delta.keyDecision,
     plan: delta.plan,
+    rag: (delta.rag ?? "") as "" | "Red" | "Amber" | "Green",
   });
   const [saving, startSaving] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const canEdit = Boolean(delta.pageId);
 
-  const rag = detectRag(delta.headline);
+  // Prefer the explicit RAG select column if set; otherwise fall back to
+  // detecting a token in the Headline text (legacy behavior).
+  const rag = delta.rag
+    ? (delta.rag.toLowerCase() as "red" | "amber" | "green")
+    : detectRag(delta.headline);
   const ragColor =
     rag === "red"
       ? theme.red
@@ -138,6 +143,7 @@ export function WeeklyDeltaStrip({
       risks: delta.risks,
       keyDecision: delta.keyDecision,
       plan: delta.plan,
+      rag: (delta.rag ?? "") as "" | "Red" | "Amber" | "Green",
     });
     setError(null);
     setEditing(true);
@@ -172,6 +178,7 @@ export function WeeklyDeltaStrip({
             risks: draft.risks,
             keyDecision: draft.keyDecision,
             plan: draft.plan,
+            rag: draft.rag === "" ? null : draft.rag,
           }),
         });
         const json = await res.json();
@@ -390,38 +397,69 @@ export function WeeklyDeltaStrip({
         </div>
       </div>
 
-      {/* Edit-only: Week number input alongside the existing header. */}
+      {/* Edit-only: Week number + RAG inputs alongside the existing header. */}
       {isEditing && (
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "10px",
+            gap: "16px",
             marginBottom: "10px",
+            flexWrap: "wrap",
           }}
         >
-          <label style={{ ...sectionLabelStyle, margin: 0 }}>Week #</label>
-          <input
-            type="number"
-            min={1}
-            step={1}
-            value={draft.weekNumber}
-            onChange={(e) =>
-              setDraft((d) => ({ ...d, weekNumber: e.target.value }))
-            }
-            placeholder="1"
-            style={{
-              width: "70px",
-              fontFamily: fontStack,
-              fontSize: "13px",
-              color: theme.ink,
-              background: theme.surfaceElevated,
-              border: `1px solid ${theme.accent}`,
-              borderRadius: "3px",
-              padding: "4px 8px",
-              outline: "none",
-            }}
-          />
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <label style={{ ...sectionLabelStyle, margin: 0 }}>Week #</label>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={draft.weekNumber}
+              onChange={(e) =>
+                setDraft((d) => ({ ...d, weekNumber: e.target.value }))
+              }
+              placeholder="0"
+              style={{
+                width: "70px",
+                fontFamily: fontStack,
+                fontSize: "13px",
+                color: theme.ink,
+                background: theme.surfaceElevated,
+                border: `1px solid ${theme.accent}`,
+                borderRadius: "3px",
+                padding: "4px 8px",
+                outline: "none",
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <label style={{ ...sectionLabelStyle, margin: 0 }}>RAG</label>
+            <select
+              value={draft.rag}
+              onChange={(e) =>
+                setDraft((d) => ({
+                  ...d,
+                  rag: e.target.value as typeof d.rag,
+                }))
+              }
+              style={{
+                fontFamily: fontStack,
+                fontSize: "13px",
+                color: theme.ink,
+                background: theme.surfaceElevated,
+                border: `1px solid ${theme.accent}`,
+                borderRadius: "3px",
+                padding: "4px 8px",
+                outline: "none",
+                cursor: "pointer",
+              }}
+            >
+              <option value="">Auto (from headline)</option>
+              <option value="Red">Red</option>
+              <option value="Amber">Amber</option>
+              <option value="Green">Green</option>
+            </select>
+          </div>
         </div>
       )}
 

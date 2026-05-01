@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
     risks?: unknown;
     keyDecision?: unknown;
     plan?: unknown;
+    rag?: unknown;
   };
   try {
     body = await req.json();
@@ -60,6 +61,11 @@ export async function POST(req: NextRequest) {
     typeof body.weekNumber === "number" && Number.isFinite(body.weekNumber)
       ? body.weekNumber
       : null;
+  const ragRaw = typeof body.rag === "string" ? body.rag : "";
+  const rag =
+    ragRaw === "Red" || ragRaw === "Amber" || ragRaw === "Green"
+      ? ragRaw
+      : null;
 
   const client = new Client({ auth: token });
   const richText = (text: string) =>
@@ -80,6 +86,7 @@ export async function POST(req: NextRequest) {
         // Notion column has a trailing space ("Key Decision ").
         "Key Decision ": { rich_text: richText(keyDecision) },
         "Plan for next week": { rich_text: richText(plan) },
+        RAG: rag ? { select: { name: rag } } : { select: null },
       },
     });
   } catch (err) {

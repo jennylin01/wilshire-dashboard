@@ -52,7 +52,7 @@ export interface Engagement {
 const WILSHIRE: Engagement = {
   slug: "wilshire",
   programme: {
-    name: "Wilshire — AI Acceleration (SOW 7)",
+    name: "Wilshire — AI Acceleration",
     client: "Wilshire Advisors LLC",
     supplier: "Motive Labs US, LLC",
     // $200k base; up to $250k contingent ($100k FTE-capacity-release fee +
@@ -69,9 +69,11 @@ const WILSHIRE: Engagement = {
       "Andrew Dabinett (CRO SME)",
       "Tamika Peterkin (CRO SME)",
     ],
-    start: "May 4, 2026",
-    end: "Jul 5, 2026",
-    currentWeek: 1,
+    // Wk 0 (Apr 27 - May 1) is the planning / pre-engagement week.
+    // Wk 1 (May 4-10) is kickoff. Wk 8 (Jun 22-28) is the final week.
+    start: "Apr 27, 2026",
+    end: "Jun 28, 2026",
+    currentWeek: 0,
     totalWeeks: 9,
     // `today` is re-computed on each render in load-data.ts
     today: "",

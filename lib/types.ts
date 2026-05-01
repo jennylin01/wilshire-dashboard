@@ -125,6 +125,9 @@ export interface WeeklyDelta {
   keyDecision: string;
   // Notion: Plan for next week
   plan: string;
+  // Notion: RAG select (Red/Amber/Green). null when not explicitly set —
+  // dashboard then falls back to deriving from the headline text.
+  rag: "Red" | "Amber" | "Green" | null;
   // Notion page id of the chosen row, when one was selected. Absent in
   // empty state. Used by the dashboard inline editor to write changes back.
   pageId?: string;

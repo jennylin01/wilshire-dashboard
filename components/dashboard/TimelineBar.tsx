@@ -58,7 +58,8 @@ export function TimelineBar({
         }}
       >
         {Array.from({ length: programme.totalWeeks }, (_, i) => {
-          const wk = i + 1;
+          // Timeline ticks are 0-indexed: Wk 0 (planning) through Wk N-1.
+          const wk = i;
           const isPast = wk < programme.currentWeek;
           const isCurrent = wk === programme.currentWeek;
           const mThisWeek = milestones.filter((m) => m.week === wk);

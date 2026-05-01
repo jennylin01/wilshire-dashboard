@@ -443,6 +443,7 @@ const EMPTY_WEEKLY_DELTA: WeeklyDelta = {
   risks: "",
   keyDecision: "",
   plan: "",
+  rag: null,
 };
 
 // Derive the week-ending Friday from a Monday (Week start). Returns
@@ -482,6 +483,7 @@ export function mapWeeklyDelta(
     risks: string;
     keyDecision: string;
     plan: string;
+    rag: "Red" | "Amber" | "Green" | null;
     startMs: number;
   };
   const weeks: ParsedWeek[] = [];
@@ -510,6 +512,12 @@ export function mapWeeklyDelta(
       plan:
         readRichText(props["Plan for next week"]) ||
         readRichText(props["Plan for next period"]),
+      rag: (() => {
+        const raw = readSelect(props["RAG"]);
+        return raw === "Red" || raw === "Amber" || raw === "Green"
+          ? raw
+          : null;
+      })(),
       startMs: isNaN(startMs) ? 0 : startMs,
     });
   }
@@ -534,6 +542,7 @@ export function mapWeeklyDelta(
     risks: chosen.risks,
     keyDecision: chosen.keyDecision,
     plan: chosen.plan,
+    rag: chosen.rag,
     pageId: chosen.id,
   };
 }
