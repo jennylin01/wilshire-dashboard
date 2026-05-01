@@ -296,7 +296,7 @@ export function Dashboard({ data }: { data: DashboardData }) {
       <div
         style={{ padding: "24px 40px 0" }}
       >
-        <WeeklyDeltaStrip delta={data.weeklyDelta} />
+        <WeeklyDeltaStrip delta={data.weeklyDelta} programme={data.programme} />
       </div>
 
       {/* VITALS */}

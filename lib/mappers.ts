@@ -500,7 +500,10 @@ export function mapWeeklyDelta(
   const eligible = weeks
     .filter((w) => w.startMs <= todayMs)
     .sort((a, b) => b.startMs - a.startMs);
-  const chosen = eligible[0] ?? weeks.sort((a, b) => a.startMs - b.startMs)[0];
+  // No fallback to future weeks: showing a forecasted week as "this week"
+  // is misleading pre-engagement. Return the empty state instead.
+  const chosen = eligible[0];
+  if (!chosen) return EMPTY_WEEKLY_DELTA;
 
   return {
     weekOf: chosen.weekOf,

@@ -2,9 +2,16 @@
 
 import { useTheme } from "@/components/ThemeProvider";
 import { fontStack } from "@/lib/theme";
-import type { WeeklyDelta } from "@/lib/types";
+import { ArrowUpRight } from "lucide-react";
+import type { Programme, WeeklyDelta } from "@/lib/types";
 
-export function WeeklyDeltaStrip({ delta }: { delta: WeeklyDelta }) {
+export function WeeklyDeltaStrip({
+  delta,
+  programme,
+}: {
+  delta: WeeklyDelta;
+  programme: Programme;
+}) {
   const { theme } = useTheme();
 
   const sections: { label: string; body: string }[] = [
@@ -46,12 +53,47 @@ export function WeeklyDeltaStrip({ delta }: { delta: WeeklyDelta }) {
         </div>
         <div
           style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
             fontFamily: fontStack,
             fontSize: "12px",
             color: theme.mutedSoft,
           }}
         >
-          Updated Fridays
+          <span>Updated Fridays</span>
+          {programme.weeklyDeltaUrl && (
+            <a
+              href={programme.weeklyDeltaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Edit weekly update in Notion"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                fontSize: "12px",
+                fontWeight: 500,
+                color: theme.accent,
+                textDecoration: "none",
+                padding: "4px 10px",
+                border: `1px solid ${theme.accent}`,
+                borderRadius: "3px",
+                transition: "background 0.1s",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLAnchorElement).style.background =
+                  theme.accentSoft;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLAnchorElement).style.background =
+                  "transparent";
+              }}
+            >
+              Edit in Notion
+              <ArrowUpRight size={12} />
+            </a>
+          )}
         </div>
       </div>
 

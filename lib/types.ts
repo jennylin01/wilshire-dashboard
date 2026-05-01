@@ -133,6 +133,9 @@ export interface Programme {
   // Optional deep-link to the Milestones tracker DB in Notion. Surfaced
   // on the MilestonesStrip section header as an "Open in Notion" affordance.
   milestonesUrl?: string;
+  // Optional deep-link to the Weekly delta DB in Notion. Surfaced on the
+  // WeeklyDeltaStrip header so users can jump straight to edit the row.
+  weeklyDeltaUrl?: string;
 }
 
 // Sections of the dashboard that can be conditionally hidden per engagement.
