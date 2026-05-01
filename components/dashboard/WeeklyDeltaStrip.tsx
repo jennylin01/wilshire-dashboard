@@ -4,8 +4,45 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
 import { fontStack } from "@/lib/theme";
-import { ArrowUpRight, Pencil } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  ArrowUpRight,
+  FileText,
+  Gavel,
+  Pencil,
+} from "lucide-react";
 import type { Programme, WeeklyDelta } from "@/lib/types";
+
+// Pull a RAG state out of free-text headlines like "Overall RAG: Red" or
+// "Status: Amber". Returns null if no recognizable token is present.
+function detectRag(text: string): "red" | "amber" | "green" | null {
+  const m = text.match(/\b(red|amber|yellow|green)\b/i);
+  if (!m) return null;
+  const tok = m[1].toLowerCase();
+  if (tok === "red") return "red";
+  if (tok === "green") return "green";
+  return "amber"; // amber + yellow both map to amber
+}
+
+// Render a body string as a hanging-indent list when it looks like one
+// ("1.", "•", "-", "*" line starts). Otherwise renders as plain text.
+function renderBody(body: string): React.ReactNode {
+  if (!body) return "—";
+  const lines = body.split("\n").filter((l) => l.trim() !== "");
+  const isList = lines.length > 1 && lines.every((l) => /^\s*([0-9]+[.)]|[-•*])\s+/.test(l));
+  if (!isList) return body;
+  return (
+    <ul style={{ margin: 0, paddingLeft: "20px" }}>
+      {lines.map((l, i) => (
+        <li key={i} style={{ marginBottom: "4px" }}>
+          {l.replace(/^\s*([0-9]+[.)]|[-•*])\s+/, "")}
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function WeeklyDeltaStrip({
   delta,
@@ -30,24 +67,66 @@ export function WeeklyDeltaStrip({
   const [error, setError] = useState<string | null>(null);
   const canEdit = Boolean(delta.pageId);
 
+  const rag = detectRag(delta.headline);
+  const ragColor =
+    rag === "red"
+      ? theme.red
+      : rag === "amber"
+        ? theme.amber
+        : rag === "green"
+          ? theme.green
+          : theme.accent;
+  const ragBg =
+    rag === "red"
+      ? theme.redBg
+      : rag === "amber"
+        ? theme.amberBg
+        : rag === "green"
+          ? theme.greenBg
+          : theme.accentSoft;
+
   const sections: {
     key: "summary" | "progress" | "risks" | "keyDecision" | "plan";
     label: string;
     body: string;
+    Icon: typeof FileText;
+    accent: string;
   }[] = [
     {
       key: "summary",
       label: `Summary status w/e ${delta.weekEnding}`,
       body: delta.summary,
+      Icon: FileText,
+      accent: theme.accent,
     },
     {
       key: "progress",
       label: "This week's progress",
       body: delta.progress,
+      Icon: Activity,
+      accent: theme.green,
     },
-    { key: "risks", label: "Key risks / issues / blockers", body: delta.risks },
-    { key: "keyDecision", label: "Key decisions", body: delta.keyDecision },
-    { key: "plan", label: "Plan for next week", body: delta.plan },
+    {
+      key: "risks",
+      label: "Key risks / issues / blockers",
+      body: delta.risks,
+      Icon: AlertTriangle,
+      accent: theme.amber,
+    },
+    {
+      key: "keyDecision",
+      label: "Key decisions",
+      body: delta.keyDecision,
+      Icon: Gavel,
+      accent: theme.accent,
+    },
+    {
+      key: "plan",
+      label: "Plan for next week",
+      body: delta.plan,
+      Icon: ArrowRight,
+      accent: theme.accent,
+    },
   ];
 
   const startEdit = () => {
@@ -145,6 +224,7 @@ export function WeeklyDeltaStrip({
       style={{
         background: theme.surface,
         border: `1px solid ${theme.rule}`,
+        borderLeft: `4px solid ${ragColor}`,
         borderRadius: "4px",
         padding: "16px 22px",
       }}
@@ -171,13 +251,42 @@ export function WeeklyDeltaStrip({
         >
           <span
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
               fontWeight: 700,
-              color: theme.accent,
+              color: ragColor,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
             }}
           >
+            <span
+              aria-hidden
+              style={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                background: ragColor,
+                boxShadow: `0 0 0 3px ${ragBg}`,
+              }}
+            />
             This week
+            {rag && (
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: ragColor,
+                  background: ragBg,
+                  padding: "1px 6px",
+                  borderRadius: "3px",
+                }}
+              >
+                {rag}
+              </span>
+            )}
           </span>
           {delta.weekNumber != null && (
             <span
@@ -368,23 +477,47 @@ export function WeeklyDeltaStrip({
           gap: "14px",
         }}
       >
-        {sections.map((s) => (
-          <section key={s.key}>
-            <h3 style={sectionLabelStyle}>{s.label}</h3>
-            {isEditing ? (
-              <textarea
-                value={draft[s.key]}
-                onChange={(e) =>
-                  setDraft((d) => ({ ...d, [s.key]: e.target.value }))
-                }
-                rows={Math.max(3, draft[s.key].split("\n").length + 1)}
-                style={textareaStyle}
-              />
-            ) : (
-              <p style={sectionBodyStyle}>{s.body || "—"}</p>
-            )}
-          </section>
-        ))}
+        {sections.map((s) => {
+          const Icon = s.Icon;
+          return (
+            <section
+              key={s.key}
+              style={
+                isEditing
+                  ? undefined
+                  : {
+                      borderLeft: `2px solid ${s.accent}`,
+                      paddingLeft: "12px",
+                    }
+              }
+            >
+              <h3
+                style={{
+                  ...sectionLabelStyle,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  color: s.accent,
+                }}
+              >
+                <Icon size={12} />
+                {s.label}
+              </h3>
+              {isEditing ? (
+                <textarea
+                  value={draft[s.key]}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, [s.key]: e.target.value }))
+                  }
+                  rows={Math.max(3, draft[s.key].split("\n").length + 1)}
+                  style={textareaStyle}
+                />
+              ) : (
+                <div style={sectionBodyStyle}>{renderBody(s.body)}</div>
+              )}
+            </section>
+          );
+        })}
       </div>
 
       {isEditing && (
