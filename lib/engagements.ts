@@ -63,7 +63,7 @@ const WILSHIRE: Engagement = {
     fee: 200,
     clientSponsor: "Andy Stewart",
     workstreamLead: "Mo Beldo",
-    motiveCapital: "Chris Wiliam",
+    motiveCapital: "Chris William",
     motiveCreate: "Sreeram Visvanathan (Partner) / Jenny Lin (MD)",
     deliveryLead: "Mo Beldo (MC), Hanna Valva (Wilshire)",
     subtitle:
