@@ -531,9 +531,18 @@ export function mapWeeklyDelta(
   }
   if (!weeks.length) return EMPTY_WEEKLY_DELTA;
 
-  const todayMs = today.getTime();
+  // Show the most recently completed week, not the in-progress one.
+  // Weekly status meetings happen Monday morning before the current week's
+  // row is filled in, so anchor selection to the start of this week (Monday)
+  // and pick the latest row strictly before it.
+  const startOfThisWeek = new Date(today);
+  const day = startOfThisWeek.getDay(); // 0 Sun .. 6 Sat
+  const daysSinceMonday = (day + 6) % 7;
+  startOfThisWeek.setDate(startOfThisWeek.getDate() - daysSinceMonday);
+  startOfThisWeek.setHours(0, 0, 0, 0);
+  const cutoffMs = startOfThisWeek.getTime();
   const eligible = weeks
-    .filter((w) => w.startMs <= todayMs)
+    .filter((w) => w.startMs < cutoffMs)
     .sort((a, b) => b.startMs - a.startMs);
   // No fallback to future weeks: showing a forecasted week as "this week"
   // is misleading pre-engagement. Return the empty state instead.
